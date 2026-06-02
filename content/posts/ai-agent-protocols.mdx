@@ -1,0 +1,422 @@
+---
+title: "The Complete Guide to AI Agent Protocols"
+description: "MCP, A2A, ACP, ANP, AG-UI, AP2, UCP and beyond — the new communication standards shaping how AI agents think, talk, and transact. A full breakdown of every protocol, where it fits, and a comparison table of pros and cons."
+date: "2026-06-02"
+tags: ["AI Agents", "Protocols", "Infrastructure"]
+readTime: "8 min read"
+featured: true
+---
+
+Three years ago, building an AI agent meant picking a model and writing prompts. Today it means navigating a layered stack of **communication standards** — protocols that determine how your agent connects to tools, coordinates with other agents, renders results in a UI, and safely handles payments.
+
+The good news: each protocol solves a **distinct, well-scoped problem**. Once you understand the layers, the landscape stops feeling chaotic and starts feeling like good engineering. This article maps every major protocol, explains what it does, and gives you a comparison table to guide architecture decisions.
+
+---
+
+<div className="section">
+<p style={{fontSize:'13px',fontWeight:'600',letterSpacing:'.1em',textTransform:'uppercase',color:'var(--ink-muted)',marginBottom:'14px'}}>The Agent Protocol Stack</p>
+<div className="stack">
+  <div className="stack-layer">
+    <div className="stack-label l1">🛠️ Layer 1</div>
+    <div className="stack-protos"><span className="sp">MCP</span></div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l2">🤝 Layer 2</div>
+    <div className="stack-protos"><span className="sp">A2A</span><span className="sp">ACP</span><span className="sp">ANP</span></div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l3">🖥️ Layer 3</div>
+    <div className="stack-protos"><span className="sp">AG-UI</span></div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l4">💳 Layer 4</div>
+    <div className="stack-protos"><span className="sp">AP2</span><span className="sp">UCP</span></div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l5">🔬 Layer 5</div>
+    <div className="stack-protos"><span className="sp">X42</span><span className="sp">W3C WACG</span></div>
+  </div>
+</div>
+</div>
+
+---
+
+<div className="section-label">
+  <div className="icon icon-tool">🛠️</div>
+  <h2>Layer 1 — Tool &amp; Data Access</h2>
+  <span className="layer-tag">Tool Calling</span>
+</div>
+
+<div className="proto-card mcp">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">MCP</div>
+      <div className="proto-full">Model Context Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">Anthropic</span>
+      <span className="badge badge-year">2024</span>
+      <span className="badge badge-hot">🔥 Most Adopted</span>
+      <span className="badge badge-open">Open</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> MCP is the USB-C of AI tooling. It defines a standard way for a language model (or any AI client) to discover and call tools — file systems, databases, APIs, code executors — without custom integration code for each.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> A lightweight JSON-RPC 2.0 protocol runs over stdio or HTTP+SSE. The model sends a <code>tools/call</code> request; the MCP server executes it and returns a structured result. Servers can also expose <em>resources</em> (read-only context) and <em>prompts</em> (reusable templates).
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">File access</span>
+    <span className="chip chip-use">Database queries</span>
+    <span className="chip chip-use">Web search</span>
+    <span className="chip chip-use">Code execution</span>
+    <span className="chip chip-tech">JSON-RPC 2.0</span>
+    <span className="chip chip-tech">stdio / HTTP+SSE</span>
+  </div>
+</div>
+
+**Pros:** Huge ecosystem (1000+ servers), model-agnostic, simple to implement, backed by Anthropic with Claude native support.
+
+**Cons:** Designed for single-agent → tool calls; not built for agent-to-agent delegation or stateful multi-turn agent sessions.
+
+---
+
+<div className="section-label">
+  <div className="icon icon-agent">🤝</div>
+  <h2>Layer 2 — Agent-to-Agent Communication</h2>
+  <span className="layer-tag">Agent Coordination</span>
+</div>
+
+<div className="proto-card a2a">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">A2A</div>
+      <div className="proto-full">Agent-to-Agent Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">Google</span>
+      <span className="badge badge-year">2025</span>
+      <span className="badge badge-hot">🔥 Growing Fast</span>
+      <span className="badge badge-open">Open</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> A2A lets one AI agent delegate tasks to another — across vendors, clouds, and frameworks. Each agent publishes an <em>Agent Card</em> (a JSON manifest describing its capabilities), and clients discover and hire agents dynamically.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> Built on HTTP + JSON. An orchestrator agent sends a task to a remote agent endpoint. The remote agent responds synchronously or streams updates via SSE. Agents authenticate via OAuth 2.0 / API keys.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Multi-agent orchestration</span>
+    <span className="chip chip-use">Task delegation</span>
+    <span className="chip chip-use">Cross-vendor agents</span>
+    <span className="chip chip-tech">HTTP + JSON</span>
+    <span className="chip chip-tech">SSE streaming</span>
+    <span className="chip chip-tech">OAuth 2.0</span>
+  </div>
+</div>
+
+<div className="proto-card acp">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">ACP</div>
+      <div className="proto-full">Agent Communication Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">IBM / BeeAI</span>
+      <span className="badge badge-year">2025</span>
+      <span className="badge badge-open">Open</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> ACP is IBM's take on agent-to-agent communication, optimised for local and enterprise deployments. Where A2A is cloud-native, ACP is framework-native — it's designed to work inside BeeAI and similar agent runtimes with lower overhead.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> REST API with multipart message payloads. Agents register with a local ACP server. Clients call <code>POST /runs</code> to start a task, poll or stream for results. Supports synchronous, async, and streaming modes.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Enterprise agents</span>
+    <span className="chip chip-use">Local deployments</span>
+    <span className="chip chip-tech">REST</span>
+    <span className="chip chip-tech">Multipart payloads</span>
+  </div>
+</div>
+
+<div className="proto-card anp">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">ANP</div>
+      <div className="proto-full">Agent Network Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">AgentNetworkProtocol.com</span>
+      <span className="badge badge-year">2025</span>
+      <span className="badge badge-open">Open</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> ANP takes a decentralised, web-native approach. Rather than a central registry, agents are identified by DIDs (Decentralised Identifiers) and discovered via crawlable JSON-LD manifests — essentially a DNS-style mesh for agents.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> Agents publish a <code>agent.json</code> manifest at a well-known URL. Communication uses standard HTTPS with DID-based authentication. The network is peer-to-peer — no central coordinator.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Decentralised agent networks</span>
+    <span className="chip chip-use">Open internet agents</span>
+    <span className="chip chip-tech">DID / W3C</span>
+    <span className="chip chip-tech">JSON-LD</span>
+    <span className="chip chip-tech">HTTPS</span>
+  </div>
+</div>
+
+---
+
+<div className="section-label">
+  <div className="icon icon-ui">🖥️</div>
+  <h2>Layer 3 — Agent-to-UI Communication</h2>
+  <span className="layer-tag">Rendering</span>
+</div>
+
+<div className="proto-card agui">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">AG-UI</div>
+      <div className="proto-full">Agent-User Interaction Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">CopilotKit</span>
+      <span className="badge badge-year">2025</span>
+      <span className="badge badge-open">Open</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> AG-UI is the missing link between backend agents and frontend UIs. It defines a standard event stream that any agent can emit, and any UI framework can consume — enabling real-time streaming text, tool call progress, state updates, and shared state synchronisation.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> The agent emits typed events (<code>TEXT_MESSAGE_CHUNK</code>, <code>TOOL_CALL_START</code>, <code>STATE_DELTA</code>, etc.) over SSE or WebSocket. The frontend SDK subscribes and renders them. Works alongside MCP and A2A — it's purely about the UI layer.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Streaming chat UI</span>
+    <span className="chip chip-use">Agent status indicators</span>
+    <span className="chip chip-use">Co-pilot interfaces</span>
+    <span className="chip chip-tech">SSE / WebSocket</span>
+    <span className="chip chip-tech">Typed events</span>
+  </div>
+</div>
+
+---
+
+<div className="section-label">
+  <div className="icon icon-commerce">💳</div>
+  <h2>Layer 4 — Commerce &amp; Payments</h2>
+  <span className="layer-tag">Transactions</span>
+</div>
+
+<div className="proto-card ap2">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">AP2</div>
+      <div className="proto-full">Agent Payment Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">Community</span>
+      <span className="badge badge-year">2025</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> AP2 defines how agents request, authorise, and execute payments — without a human in the loop. An agent can purchase API credits, pay for services from other agents, or settle micro-transactions autonomously, within pre-approved spending limits.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> Payment requests include a structured <code>PaymentIntent</code> with amount, currency, purpose, and recipient. The human pre-approves a budget and delegates authority. The agent signs and submits the intent; the payment provider settles it.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Autonomous purchasing</span>
+    <span className="chip chip-use">Agent-to-agent billing</span>
+    <span className="chip chip-tech">Payment intents</span>
+    <span className="chip chip-tech">Delegated authority</span>
+  </div>
+</div>
+
+<div className="proto-card ucp">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">UCP</div>
+      <div className="proto-full">Universal Commerce Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">Emerging</span>
+      <span className="badge badge-year">2025</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> UCP goes beyond payments to cover the full commerce lifecycle for agents: product discovery, negotiation, purchase, fulfilment tracking, and returns — all without human intervention. Think of it as an EDI system redesigned for AI agents.
+  </div>
+  <div className="proto-how">
+    <span>How it works:</span> Structured JSON messages cover each commerce stage. Sellers publish an <code>agent-commerce.json</code> manifest; buyers send structured purchase requests. Smart contracts or escrow services can optionally enforce terms.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Agentic e-commerce</span>
+    <span className="chip chip-use">B2B agent procurement</span>
+    <span className="chip chip-tech">JSON commerce messages</span>
+    <span className="chip chip-tech">Smart contracts (optional)</span>
+  </div>
+</div>
+
+---
+
+<div className="section-label">
+  <div className="icon icon-emerging">🔬</div>
+  <h2>Layer 5 — Emerging &amp; Standards-Track</h2>
+  <span className="layer-tag">Watch List</span>
+</div>
+
+<div className="proto-card x42">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">X42</div>
+      <div className="proto-full">Extended Agent Execution Protocol</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">Research</span>
+      <span className="badge badge-year">2025</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> X42 is an experimental protocol for long-horizon agent execution — tasks that span hours or days, survive restarts, and require checkpoint/resume semantics. It addresses the durability gap in current agentic frameworks.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Long-running tasks</span>
+    <span className="chip chip-use">Checkpoint/resume</span>
+    <span className="chip chip-tech">Durable execution</span>
+  </div>
+</div>
+
+<div className="proto-card w3c">
+  <div className="proto-header">
+    <div>
+      <div className="proto-name">W3C WACG</div>
+      <div className="proto-full">Web Agent Capability Guidelines</div>
+    </div>
+    <div className="proto-badges">
+      <span className="badge badge-by">W3C</span>
+      <span className="badge badge-year">2025</span>
+    </div>
+  </div>
+  <div className="proto-body">
+    <strong>What it does:</strong> W3C's working group on agent-accessible web is defining how websites should publish structured capability metadata — so agents can reliably understand what actions are available (search, checkout, book) without scraping.
+  </div>
+  <div className="proto-chips">
+    <span className="chip chip-use">Web automation</span>
+    <span className="chip chip-use">Structured web actions</span>
+    <span className="chip chip-tech">JSON-LD</span>
+    <span className="chip chip-tech">Schema.org extension</span>
+  </div>
+</div>
+
+---
+
+## Comparison Table
+
+<div className="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Protocol</th>
+      <th>Layer</th>
+      <th>By</th>
+      <th>Transport</th>
+      <th>Best For</th>
+      <th>Maturity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>MCP</strong></td>
+      <td>Tool Access</td>
+      <td>Anthropic</td>
+      <td>stdio / HTTP+SSE</td>
+      <td>Connecting agents to tools &amp; data</td>
+      <td>✅ Production</td>
+    </tr>
+    <tr>
+      <td><strong>A2A</strong></td>
+      <td>Agent ↔ Agent</td>
+      <td>Google</td>
+      <td>HTTP + SSE</td>
+      <td>Cross-vendor agent orchestration</td>
+      <td>✅ Production</td>
+    </tr>
+    <tr>
+      <td><strong>ACP</strong></td>
+      <td>Agent ↔ Agent</td>
+      <td>IBM</td>
+      <td>REST</td>
+      <td>Enterprise &amp; local deployments</td>
+      <td>🟡 Beta</td>
+    </tr>
+    <tr>
+      <td><strong>ANP</strong></td>
+      <td>Agent ↔ Agent</td>
+      <td>Community</td>
+      <td>HTTPS + DIDs</td>
+      <td>Open internet agent mesh</td>
+      <td>🟡 Early</td>
+    </tr>
+    <tr>
+      <td><strong>AG-UI</strong></td>
+      <td>Agent ↔ UI</td>
+      <td>CopilotKit</td>
+      <td>SSE / WebSocket</td>
+      <td>Streaming agent UIs</td>
+      <td>✅ Production</td>
+    </tr>
+    <tr>
+      <td><strong>AP2</strong></td>
+      <td>Commerce</td>
+      <td>Community</td>
+      <td>HTTP</td>
+      <td>Autonomous payments</td>
+      <td>🔴 Experimental</td>
+    </tr>
+    <tr>
+      <td><strong>UCP</strong></td>
+      <td>Commerce</td>
+      <td>Emerging</td>
+      <td>HTTP / Smart contracts</td>
+      <td>Full agentic commerce</td>
+      <td>🔴 Experimental</td>
+    </tr>
+    <tr>
+      <td><strong>X42</strong></td>
+      <td>Execution</td>
+      <td>Research</td>
+      <td>Various</td>
+      <td>Long-running durable tasks</td>
+      <td>🔴 Research</td>
+    </tr>
+    <tr>
+      <td><strong>W3C WACG</strong></td>
+      <td>Web Access</td>
+      <td>W3C</td>
+      <td>JSON-LD</td>
+      <td>Structured web capabilities</td>
+      <td>🟡 Draft</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+---
+
+<div className="takeaway">
+  <h2>The Key Takeaway</h2>
+  <p>These protocols are <strong>complementary, not competing</strong>. A production agent system in 2026 might use all of them simultaneously:</p>
+  <ul>
+    <li><strong>MCP</strong> to connect the agent to your database and internal tools</li>
+    <li><strong>A2A</strong> to delegate research subtasks to a specialised agent</li>
+    <li><strong>AG-UI</strong> to stream progress and results to your frontend</li>
+    <li><strong>AP2</strong> to pay for third-party API usage autonomously</li>
+  </ul>
+  <p style={{marginTop:'16px'}}>The layer model is the mental model. Once you see each protocol as solving one layer, the choices become obvious.</p>
+</div>
