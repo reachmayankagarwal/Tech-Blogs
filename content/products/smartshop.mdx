@@ -1,0 +1,386 @@
+---
+title: "SmartShop"
+tagline: "Three AI agents. Seventeen retailers. The best price in under five seconds."
+description: "How I built an AI price comparison engine for Australian shoppers — covering the full PM journey from the fake-search problem to a parallel multi-agent architecture deployed on Vercel."
+status: "Live"
+tags: ["Next.js", "Groq AI", "Multi-Agent", "React", "Vercel"]
+date: "2026-06-08"
+link: "https://smartshop-reachmayankagarwal.vercel.app/"
+---
+
+Buying anything in Australia means running the same tax on your own time, over and over. You want a pair of headphones, a new TV, an air fryer for a gift — and before you commit, you open a tab. Then another. JB Hi-Fi, Harvey Norman, The Good Guys, Kmart, Big W, Amazon AU, Officeworks. Seventeen major retailers carry overlapping catalogues, and each one quietly hopes you won't check the others. There is no single place built for Australia's specific retail mix where you can type a product name once and see who actually has the best price.
+
+The status quo is manual labour. Checking 17 retailers by hand takes 30+ minutes, and by the time you've opened tab number nine you've forgotten what tab number two quoted. Prices may already be outdated. It's tiring, it's error-prone, and for routine purchases it's so annoying that most people just give up and buy from wherever they landed first. The existing tools don't fix this: Google Shopping is generic and global, price.com.au feels dated, and nothing is built around the retailers Australians actually shop at. SmartShop is my attempt to collapse those 30 minutes into a single search that resolves in under five seconds.
+
+## The Fake-Search Problem
+
+The honest place to start is with a confession about the codebase I inherited. When I opened SmartShop's original version, the "search" was theatre. You'd type a query, a spinner would run for exactly 1.5 seconds on a hardcoded timer, and then two pre-baked products would appear — the same two, every time, regardless of what you searched for. It looked like a product. It demoed like a product. But it was a facade of search, not actual search.
+
+That fake timer was the first thing that had to go. As a PM, the temptation with a polished-looking fake is to keep dressing it up — better animations, more mock data, a slicker hero section. I made the opposite call. The fiction was worthless; the only thing worth building was a search that genuinely went out, looked at real retailers, and came back with real comparisons. Everything downstream — the architecture, the agent design, the URL strategy — exists because I decided to replace the 1.5-second lie with something true.
+
+**Takeaway:** A convincing fake is more dangerous than an obvious gap, because it lets you pretend the hard part is done. Naming the fiction was the first real product decision.
+
+## Who This Is For
+
+Before designing the engine, I wrote down who actually searches and what they're afraid of. Four personas fell out of it, and each one shaped a different requirement.
+
+- **The Casual Shopper** wants a quick sanity check before buying. They've already half-decided — "is $450 a good price for these headphones?" — and just need confirmation they're not being ripped off. Their fear is buyer's remorse. They need an answer in seconds, not a research project.
+- **The Research Buyer** is making a significant purchase: a TV, a laptop, a major appliance. They're comparing deliberately and will read the detail. Their fear is overpaying on something expensive. They need breadth — every relevant retailer, clearly ranked.
+- **The Deal Hunter** wants the absolute lowest price and will happily switch retailers to save $20. Their fear is leaving money on the table. They need the cheapest option surfaced unambiguously and a direct path to it.
+- **The Gift Buyer** is shopping for something they don't know well, at a price range they can't estimate. Their fear is looking clueless or wildly overpaying. They need fast orientation — a spread of options that tells them what "normal" costs.
+
+The through-line across all four is **speed with zero friction**. Nobody in this list wants to sign up, install an app, or learn an interface. That constraint became a hard MVP goal.
+
+## The Three Key Insights
+
+Three realisations unlocked the whole build. Each one started as a worry and became a design principle.
+
+**1. LLMs know retail prices well enough for comparison.** My first assumption was that I'd need live scrapers against 17 retail sites — fragile, legally murky, and slow. Then I tested whether Groq's llama-3.3-70b could synthesise realistic AUD prices across Australian retailers. It could, comfortably. For a comparison tool whose job is orientation — "roughly what does this cost, and who's cheapest?" — synthesised prices are good enough to be genuinely useful, and they sidestep the entire scraping problem for v1.
+
+**2. Three parallel agents beat one.** A single LLM call asked to cover all 17 retailers returns maybe 3–5 deals and gives the user a blank spinner while it thinks. Splitting the work across three specialised agents that fire simultaneously returns up to 15 deals, shows transparent per-group progress as each agent "arrives," and is naturally extensible — adding a fourth retail group later is just another agent in the array.
+
+**3. Look up URLs server-side; never let the LLM generate them.** Early on, I let the model produce product links. It confidently returned things like `https://www.jbhifi.com.au/products/sony-xm5-abc123` — a URL that looks perfect and leads nowhere, because the model invented the slug. LLMs hallucinate structured data. The fix was a server-side `retailers.ts` lookup table that maps a retailer to its real search-URL pattern and builds a correct, working link every time.
+
+**Takeaway:** Use the LLM for the fuzzy part (estimating prices) and hard-coded logic for the part that must be exactly right (URLs). Knowing which is which is most of the design.
+
+## Defining the MVP
+
+I scoped v1 around five goals, each with a metric and a target, so "done" was measurable rather than vibes-based.
+
+<div className="table-wrap">
+
+| Goal | Metric | Target |
+|---|---|---|
+| Find lowest price fast | Time from query to results | < 5 seconds |
+| Cover Australia's real retail mix | Retailers in results | 17 named retailers |
+| Zero friction | Steps to first result | 0 sign-up, 0 app install, 1 search |
+| Surface the best deal clearly | "BEST" label on cheapest result | Always marked |
+| Resilient to partial failures | Results if 1 of 3 agents fails | Still returns results |
+
+</div>
+
+Equally important was writing down what v1 would *not* do. Non-goals protect a launch as much as goals do:
+
+- **No live scraping** — AI-synthesised prices only.
+- **No price history charts** — that's a v3 idea, not a launch blocker.
+- **No user accounts or saved searches** — friction is the enemy.
+- **No affiliate commissions yet** — deferred to v2 so approval timelines don't block shipping.
+- **No native app** — web-only.
+
+**Takeaway:** Every non-goal is a "no" I made on purpose so the "yeses" could ship fast.
+
+## Architecture: The 3-Agent Pipeline
+
+The whole system is a request that fans out into three concurrent Groq calls and fans back in through a merge step. The browser sends a query to a Next.js route handler running as a Vercel serverless function; that handler fires three agents in parallel with `Promise.allSettled`, then merges, sorts, marks the best deal, and enriches each result with a real retailer URL before responding.
+
+```
+Browser (React 19) → POST /api/search { query }
+  ↓
+Next.js Route Handler (Vercel Serverless Function)
+  ↓
+Promise.allSettled([agent1, agent2, agent3]) — 3 concurrent Groq calls
+  ↓
+Merge + sort by price + mark best: true + enrich with retailer URLs
+  ↓
+JSON response → React state → Animated results UI
+```
+
+The choice of `Promise.allSettled` over `Promise.all` is deliberate and load-bearing. `Promise.all` rejects the instant any one agent fails — so a single timed-out Groq call would kill the entire search and show the user an error, even though two agents returned perfectly good deals. `allSettled` waits for every agent to finish, fulfilled or rejected, and lets me harvest whatever came back.
+
+```ts
+const settled = await Promise.allSettled([agent1, agent2, agent3]);
+const deals = settled
+  .filter((r) => r.status === "fulfilled")
+  .flatMap((r) => r.value.deals);
+```
+
+<div className="pipeline">
+  <div className="pipeline-phase" style={{ borderColor: "#1d4ed8" }}>
+    <div className="pipeline-phase-header">
+      <div className="pipeline-phase-name">Phase 1 — Search</div>
+      <div className="pipeline-mode parallel">⚡ Parallel</div>
+    </div>
+    <div className="pipeline-phase-desc">Three agents fire simultaneously, one Groq call each.</div>
+    <div className="pipeline-agents">
+      <div className="pipeline-agent">
+        <div className="pipeline-agent-icon">🔌</div>
+        <div className="pipeline-agent-name">Electronics Specialists</div>
+        <div className="pipeline-agent-desc">JB Hi-Fi, Harvey Norman, The Good Guys, Bing Lee, Officeworks</div>
+      </div>
+      <div className="pipeline-agent">
+        <div className="pipeline-agent-icon">📦</div>
+        <div className="pipeline-agent-name">Online &amp; General Retailers</div>
+        <div className="pipeline-agent-desc">Amazon AU, Kmart, Big W, Target Australia</div>
+      </div>
+      <div className="pipeline-agent">
+        <div className="pipeline-agent-icon">🏪</div>
+        <div className="pipeline-agent-name">Brand &amp; Specialty Stores</div>
+        <div className="pipeline-agent-desc">Apple Store AU, Samsung AU, Sony Store AU, Myer, David Jones</div>
+      </div>
+    </div>
+  </div>
+
+  <div className="pipeline-connector">
+    <div className="pipeline-connector-line"></div>
+    <div className="pipeline-connector-label">Promise.allSettled() — tolerates partial failure</div>
+    <div className="pipeline-connector-line"></div>
+  </div>
+
+  <div className="pipeline-phase" style={{ borderColor: "#059669" }}>
+    <div className="pipeline-phase-header">
+      <div className="pipeline-phase-name">Phase 2 — Merge &amp; Enrich</div>
+      <div className="pipeline-mode sequential">Sequential</div>
+    </div>
+    <div className="pipeline-phase-desc">Collected deals are merged, ranked, and given working links.</div>
+    <div className="pipeline-agents">
+      <div className="pipeline-agent">
+        <div className="pipeline-agent-icon">🔀</div>
+        <div className="pipeline-agent-name">Merge Results</div>
+        <div className="pipeline-agent-desc">Collect deals from all fulfilled agents</div>
+      </div>
+      <div className="pipeline-agent">
+        <div className="pipeline-agent-icon">📊</div>
+        <div className="pipeline-agent-name">Sort &amp; Rank</div>
+        <div className="pipeline-agent-desc">Sort by price ascending, mark best: true</div>
+      </div>
+      <div className="pipeline-agent">
+        <div className="pipeline-agent-icon">🔗</div>
+        <div className="pipeline-agent-name">Enrich URLs</div>
+        <div className="pipeline-agent-desc">getRetailerUrl() → correct retailer search links</div>
+      </div>
+    </div>
+  </div>
+
+  <div className="pipeline-output">🎯 Output: a ranked deals table with a BEST badge on the cheapest result and direct retailer links.</div>
+  <div className="pipeline-time-callout">⚡ Timing: 3 concurrent Groq calls; wall-clock time ~1–4s depending on model latency.</div>
+</div>
+
+The merge logic itself is small but precise: collect deals from every fulfilled agent, take the product's name, category, rating, and review count from the first fulfilled agent, sort all deals by price ascending, mark index 0 as `best: true`, and enrich every deal with a URL via `getRetailerUrl(retailer, query)`.
+
+**Takeaway:** Designing for partial failure isn't pessimism — it's the difference between a tool that degrades gracefully and one that breaks the moment a free-tier API hiccups.
+
+## Retailer Coverage
+
+The 17 retailers aren't a flat list — they're partitioned into the three agent groups by how shoppers actually think about them. Electronics get a dedicated specialist agent because that's the highest-intent category; general merchants and brand-direct stores each get their own. This grouping is what makes the parallelism meaningful: each agent has a focused, coherent prompt instead of one bloated request trying to be everything.
+
+<div className="retailer-groups">
+  <div className="retailer-group">
+    <div className="retailer-group-header">
+      <span className="retailer-group-icon">🔌</span>
+      <div className="retailer-group-name">Electronics Specialists</div>
+      <span className="retailer-group-badge electronics">Agent 1</span>
+    </div>
+    <ul className="retailer-list">
+      <li>JB Hi-Fi</li>
+      <li>Harvey Norman</li>
+      <li>The Good Guys</li>
+      <li>Bing Lee</li>
+      <li>Officeworks</li>
+    </ul>
+  </div>
+  <div className="retailer-group">
+    <div className="retailer-group-header">
+      <span className="retailer-group-icon">📦</span>
+      <div className="retailer-group-name">Online &amp; General Retailers</div>
+      <span className="retailer-group-badge online">Agent 2</span>
+    </div>
+    <ul className="retailer-list">
+      <li>Amazon AU</li>
+      <li>Kmart</li>
+      <li>Big W</li>
+      <li>Target Australia</li>
+    </ul>
+  </div>
+  <div className="retailer-group">
+    <div className="retailer-group-header">
+      <span className="retailer-group-icon">🏪</span>
+      <div className="retailer-group-name">Brand &amp; Specialty Stores</div>
+      <span className="retailer-group-badge brand">Agent 3</span>
+    </div>
+    <ul className="retailer-list">
+      <li>Apple Store AU</li>
+      <li>Samsung AU</li>
+      <li>Sony Store AU</li>
+      <li>Myer</li>
+      <li>David Jones</li>
+    </ul>
+  </div>
+</div>
+
+## Tech Stack Decisions
+
+Every choice below was a tradeoff with a named reason. I kept a decision log so future-me (and anyone reading this) can see not just what I picked but what I rejected and why.
+
+<div className="table-wrap">
+
+| Decision | Chosen | Rejected | Reason |
+|---|---|---|---|
+| LLM provider | Groq (llama-3.3-70b) | Anthropic Claude | Sub-second inference on the free tier; ~30 req/min free |
+| Agent count | 3 parallel agents | 1 mega-prompt | 3× more results; transparent per-group progress; extensible |
+| URL strategy | Server-side retailers.ts lookup | LLM-generated URLs | LLMs hallucinate product URLs; a lookup table is 100% reliable |
+| State management | React useState | Redux, Zustand | Single-component state; no cross-component sharing needed |
+| Animation | Framer Motion | CSS animations | Staggered agent-card reveal at 80ms / 320ms / 560ms |
+| Deployment | Vercel | Railway, Fly.io | Zero config for Next.js; ~15s build time |
+| Monetisation | Deferred to v2 | v1 affiliate links | Affiliate approval takes 1–4 weeks; don't block launch |
+
+</div>
+
+A note on Groq vs. Claude: I genuinely like Claude's output quality, but for a comparison tool the user is staring at a loading state, and Groq's sub-second inference on a free tier that allows ~30 requests per minute was the right call for a zero-budget launch. The product's core promise is *speed*, and the LLM choice had to serve that promise first.
+
+**Takeaway:** A decision log turns "trust me" into "here's the reasoning" — and it's the single most useful artifact when someone questions a choice three months later.
+
+## The Build: Five Phases
+
+I built SmartShop in five phases, each one shippable on its own.
+
+**Phase 1 — Infrastructure.** Stand up the Vercel project and wire in the `GROQ_API_KEY` environment variable. Nothing visible yet, but it's the foundation everything else assumes.
+
+**Phase 2 — API layer.** Build the `POST /api/search` route and the three Groq agents, fired with `Promise.allSettled()`. This is where the fake timer finally died and real search took its place.
+
+**Phase 3 — Retailer library.** Write `retailers.ts`: 17 retailer configs, longest-pattern-first matching so the most specific retailer wins, and a Google Shopping fallback for anything unmatched. This is the `getRetailerUrl()` engine that guarantees every link works.
+
+**Phase 4 — UI.** Build the React state machine — empty → loading → error → results — and layer Framer Motion staggered agent cards on top so the wait feels alive.
+
+**Phase 5 — Polish.** Strip out the leftover marketing fluff: the fake hero, the phone mockups, the filler copy. Add quick tags for one-tap searches and real product copy.
+
+The most instructive moment of the build was a bug that only appeared in production. I'd instantiated the Groq client at module scope — `const groq = new Groq()` at the top of the file. Locally it worked fine. On Vercel, the build failed with `GROQ_API_KEY is not defined during build`, because module-scope code runs at build time, when the runtime env var isn't present.
+
+```ts
+// ❌ Runs at build time — GROQ_API_KEY isn't defined yet
+const groq = new Groq();
+
+export async function POST(req: Request) {
+  // ✅ Instantiate at request time instead
+  const groq = new Groq();
+  // ...
+}
+```
+
+Moving `new Groq()` inside the `POST` handler fixed it: the client is now created at request time, when the env var is available, instead of at build time, when it isn't.
+
+**Takeaway:** "Works locally, fails on deploy" is almost always a lifecycle mismatch — code running at the wrong moment (build vs. request) rather than logic that's actually wrong.
+
+## Request Lifecycle
+
+From the user's side, a search is one tap and a few seconds of watching agents arrive. Under the hood it's a tightly choreographed sequence. The Framer Motion stagger — agents sliding in at 80ms, 320ms, and 560ms — is doing real UX work: it makes the wait feel like progress rather than a blank spinner.
+
+<div className="journey-flow">
+  <div className="journey-step">
+    <div className="journey-step-num">1</div>
+    <div className="journey-icon">🔍</div>
+    <div className="journey-step-name">Query Submitted</div>
+    <div className="journey-step-desc">User types a product (e.g. "Sony XM5") or taps a quick tag · t=0ms</div>
+  </div>
+  <div className="journey-arrow">→</div>
+  <div className="journey-step">
+    <div className="journey-step-num">2</div>
+    <div className="journey-icon">⚡</div>
+    <div className="journey-step-name">3 Agents Fire</div>
+    <div className="journey-step-desc">Three Groq calls launched simultaneously via Promise.allSettled() · t=0ms</div>
+  </div>
+  <div className="journey-arrow">→</div>
+  <div className="journey-step">
+    <div className="journey-step-num">3</div>
+    <div className="journey-icon">🤖</div>
+    <div className="journey-step-name">Groq Processes</div>
+    <div className="journey-step-desc">llama-3.3-70b synthesises realistic AUD prices per retailer group · t=100–3000ms</div>
+  </div>
+  <div className="journey-arrow">→</div>
+  <div className="journey-step">
+    <div className="journey-step-num">4</div>
+    <div className="journey-icon">🔀</div>
+    <div className="journey-step-name">Merge &amp; Rank</div>
+    <div className="journey-step-desc">Deals collected, sorted by price, cheapest marked BEST, URLs enriched · t=+50ms</div>
+  </div>
+  <div className="journey-arrow">→</div>
+  <div className="journey-step">
+    <div className="journey-step-num">5</div>
+    <div className="journey-icon">✅</div>
+    <div className="journey-step-name">Results Rendered</div>
+    <div className="journey-step-desc">Staggered animation reveals the ranked table with BEST badge · t=+100ms</div>
+  </div>
+</div>
+
+**Takeaway:** Latency you can't remove, you can reframe. Showing each agent arrive turns dead waiting time into a sense of work being done on the user's behalf.
+
+## Before vs. After
+
+The entire product reduces to one comparison. This is the pitch in two cards.
+
+<div className="cost-split">
+  <div className="cost-card con">
+    <div className="cost-card-label">Manual Price Checking</div>
+    <div className="cost-number">30+ minutes</div>
+    <div className="cost-detail">Open 5–10 tabs · Prices may be outdated · Easy to miss the best deal · Exhausting for routine purchases</div>
+  </div>
+  <div className="cost-vs">vs</div>
+  <div className="cost-card pro">
+    <div className="cost-card-label">SmartShop</div>
+    <div className="cost-number">&lt; 5 seconds</div>
+    <div className="cost-detail">17 retailers checked · AI-synthesised AUD prices · Best deal highlighted · No sign-up, no app, no friction</div>
+  </div>
+</div>
+
+## Deployment
+
+Shipping SmartShop is a single command: `vercel deploy --prod`. The build takes about 15 seconds and produces two outputs — a static `/` page and the `/api/search` serverless function. TypeScript compiles clean with no errors.
+
+The one deployment gotcha was the module-scope Groq bug above. The setup that makes it work: add `GROQ_API_KEY` as a Vercel environment variable, and make sure every place that reads it does so at request time, not build time. Once that env var is set and the client is instantiated inside the handler, deploys are uneventful — which is exactly what you want a deploy to be.
+
+**Takeaway:** A boring deploy is a feature. The work that makes it boring — env vars set correctly, no build-time dependencies on runtime secrets — happens before the first `vercel deploy`.
+
+## V2: The Monetisation Plan
+
+I shipped v1 with zero affiliate links on purpose, because affiliate approval can take 1–4 weeks and I refused to let that block launch. But the architecture was built so monetisation is a config change, not a rewrite. When the affiliate IDs land, enabling them is roughly two hours of work in `retailers.ts` with **zero code changes in the UI** — the links the user already clicks simply become tagged.
+
+The plan spans three affiliate networks covering all 17 retailers.
+
+<div className="affiliate-network">
+  <div className="affiliate-card commission">
+    <div className="affiliate-network-name">Commission Factory</div>
+    <ul className="affiliate-network-retailers">
+      <li>JB Hi-Fi</li>
+      <li>Harvey Norman</li>
+      <li>The Good Guys</li>
+      <li>Bing Lee</li>
+      <li>Kmart</li>
+      <li>Big W</li>
+      <li>Officeworks</li>
+      <li>Target AU</li>
+    </ul>
+    <div className="affiliate-commission-note">~4–8% commission</div>
+  </div>
+  <div className="affiliate-card amazon">
+    <div className="affiliate-network-name">Amazon Associates AU</div>
+    <ul className="affiliate-network-retailers">
+      <li>Amazon AU</li>
+    </ul>
+    <div className="affiliate-commission-note">3–4% commission</div>
+  </div>
+  <div className="affiliate-card rakuten">
+    <div className="affiliate-network-name">Rakuten Advertising</div>
+    <ul className="affiliate-network-retailers">
+      <li>Myer</li>
+      <li>David Jones</li>
+    </ul>
+    <div className="affiliate-commission-note">5–10% commission</div>
+  </div>
+</div>
+
+The success metrics I'm holding the product to are concrete: 1,000+ monthly active users within three months, at least two searches per session, at least 30% click-through to a retailer, a 95%+ search success rate, and a p95 response time under five seconds.
+
+**Takeaway:** Build the seams for monetisation early, but pull the trigger late. The architecture supporting affiliate links cost nothing to leave in; waiting on approvals to launch would have cost weeks.
+
+## Learnings
+
+Five things I'm taking from this build:
+
+1. **The "fake search" discovery was the defining moment.** Removing the fiction and shipping real AI search was 10× more valuable than any amount of polishing the fake version would have been. Find the lie first.
+2. **`Promise.allSettled()`, not `Promise.all()`.** Tolerating partial failures gracefully is a product decision, not just an error-handling detail. One agent timing out should never kill the whole search.
+3. **LLM-generated URLs are a trap.** For any structured data that has to be exactly right, use a lookup table. Let the model estimate; don't let it fabricate.
+4. **Defer monetisation.** Shipping with zero affiliate links let me launch immediately, and the architecture supports adding them with zero code changes in the UI.
+5. **Staggered animations make waiting feel productive.** Users seeing each agent "arrive" beats users staring at a spinner, even when the total wait is identical.
+
+## What's Next
+
+The roadmap splits cleanly into near-term plumbing and longer-term features. **V2** is about turning the lights on for revenue — wiring up the three affiliate networks once IDs are approved, plus caching common queries to shave latency and API spend. **V3** is where SmartShop stops being a one-shot lookup and becomes something you come back to: price history charts ("was it cheaper last week?"), price-drop alerts ("email me when the Sony XM5 drops below $400"), saved searches and wishlists, and a wider retailer set — Bunnings, Woolworths, Chemist Warehouse. The foundation — parallel agents, reliable URLs, graceful partial failure — was built to carry all of it.
