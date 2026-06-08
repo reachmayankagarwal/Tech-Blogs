@@ -60,9 +60,37 @@ export default function HomePage() {
       </div>
 
       <div className="main">
+        {/* LATEST ARTICLES */}
+        <div id="articles">
+          <div className="section-header">
+            <h2 className={playfair.className}>Latest Articles</h2>
+            <Link href="/articles" className="card-read-link" style={{ fontSize: '0.9rem' }}>
+              View all →
+            </Link>
+          </div>
+          <div className="posts-grid">
+            {recentPosts.map((post) => (
+              <Link key={post.slug} href={`/posts/${post.slug}`} className="post-card">
+                <div className="card-category">{post.tags[0]}</div>
+                <h3 className={playfair.className}>{post.title}</h3>
+                <p>{post.description}</p>
+                <div className="card-footer">
+                  <span className="text-[var(--ink-muted)]">{formatDate(post.date)} · {post.readTime}</span>
+                  <span className="card-read-link">Read →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <Link href="/articles" className="post-read" style={{ display: 'inline-block' }}>
+              View all {allPosts.length} articles →
+            </Link>
+          </div>
+        </div>
+
         {/* PRODUCTS */}
         {allProducts.length > 0 && (
-          <div id="products">
+          <div id="products" style={{ marginTop: '64px' }}>
             <div className="section-header">
               <h2 className={playfair.className}>Products</h2>
             </div>
@@ -97,34 +125,6 @@ export default function HomePage() {
             </div>
           </div>
         )}
-
-        {/* LATEST ARTICLES */}
-        <div id="articles" style={{ marginTop: '64px' }}>
-          <div className="section-header">
-            <h2 className={playfair.className}>Latest Articles</h2>
-            <Link href="/articles" className="card-read-link" style={{ fontSize: '0.9rem' }}>
-              View all →
-            </Link>
-          </div>
-          <div className="posts-grid">
-            {recentPosts.map((post) => (
-              <Link key={post.slug} href={`/posts/${post.slug}`} className="post-card">
-                <div className="card-category">{post.tags[0]}</div>
-                <h3 className={playfair.className}>{post.title}</h3>
-                <p>{post.description}</p>
-                <div className="card-footer">
-                  <span className="text-[var(--ink-muted)]">{formatDate(post.date)} · {post.readTime}</span>
-                  <span className="card-read-link">Read →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <Link href="/articles" className="post-read" style={{ display: 'inline-block' }}>
-              View all {allPosts.length} articles →
-            </Link>
-          </div>
-        </div>
 
         {/* OPPORTUNITY CANVAS */}
         <div id="opportunity-canvas" style={{ marginTop: '64px' }}>
