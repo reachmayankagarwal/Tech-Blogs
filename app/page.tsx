@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Playfair_Display } from 'next/font/google'
 import { getAllPosts, getFeaturedPost } from '@/lib/posts'
+import { getAllProducts } from '@/lib/products'
+import type { ProductStatus } from '@/lib/products'
 import type { Metadata } from 'next'
 
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'], style: ['normal', 'italic'] })
@@ -20,9 +22,17 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+const STATUS_COLORS: Record<ProductStatus, { bg: string; color: string }> = {
+  Live:     { bg: '#d1fae5', color: '#065f46' },
+  Beta:     { bg: '#fef3c7', color: '#92400e' },
+  Building: { bg: '#dbeafe', color: '#1e40af' },
+  Archived: { bg: '#f3f4f6', color: '#6b7280' },
+}
+
 export default function HomePage() {
   const featured = getFeaturedPost()
   const allPosts = getAllPosts()
+  const allProducts = getAllProducts()
 
   return (
     <>
@@ -39,8 +49,8 @@ export default function HomePage() {
             <div className="stat-label">Articles</div>
           </div>
           <div className="stat">
-            <div className={`stat-num ${playfair.className}`}>AI</div>
-            <div className="stat-label">Focus</div>
+            <div className={`stat-num ${playfair.className}`}>{allProducts.length}</div>
+            <div className="stat-label">Products</div>
           </div>
           <div className="stat">
             <div className={`stat-num ${playfair.className}`}>2026</div>
@@ -104,6 +114,44 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+
+        {/* PRODUCTS */}
+        {allProducts.length > 0 && (
+          <div id="products" style={{ marginTop: '64px' }}>
+            <div className="section-header">
+              <h2 className={playfair.className}>Products</h2>
+            </div>
+            <div className="posts-grid">
+              {allProducts.map((product) => {
+                const statusStyle = STATUS_COLORS[product.status]
+                return (
+                  <Link key={product.slug} href={`/products/${product.slug}`} className="post-card product-card">
+                    <div className="product-card-header">
+                      <div className="card-category">{product.tags[0]}</div>
+                      <span
+                        className="product-status"
+                        style={{ background: statusStyle.bg, color: statusStyle.color }}
+                      >
+                        {product.status}
+                      </span>
+                    </div>
+                    <h3 className={playfair.className}>{product.title}</h3>
+                    <p className="product-tagline">{product.tagline}</p>
+                    <p>{product.description}</p>
+                    <div className="card-footer">
+                      <div className="product-tags">
+                        {product.tags.slice(1, 3).map((tag) => (
+                          <span key={tag} className="product-tech-tag">{tag}</span>
+                        ))}
+                      </div>
+                      <span className="card-read-link">View →</span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* TOPICS */}
         <div className="topics" id="topics">

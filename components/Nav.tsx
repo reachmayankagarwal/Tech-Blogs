@@ -15,6 +15,7 @@ export default function Nav() {
         <div className="nav-links">
           <Link href="/">Home</Link>
           <Link href="/#articles">Articles</Link>
+          <Link href="/#products">Products</Link>
           <Link href="/#topics">Topics</Link>
           <a
             href="https://linkedin.com/in/reachmayankagarwal"

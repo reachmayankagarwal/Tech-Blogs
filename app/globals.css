@@ -399,6 +399,42 @@ nav.site-nav {
   font-size: 13px;
 }
 
+/* ── PRODUCT CARDS ── */
+.product-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.product-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+.product-tagline {
+  font-size: 15px !important;
+  font-weight: 600;
+  color: var(--ink-soft) !important;
+  margin-bottom: 8px !important;
+  flex: 0 !important;
+}
+.product-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.product-tech-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--ink-muted);
+  border: 1px solid var(--rule);
+}
+
 /* ── TOPICS ── */
 .topics {
   margin-top: 64px;
