@@ -8,8 +8,8 @@ import type { Metadata } from 'next'
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'], style: ['normal', 'italic'] })
 
 export const metadata: Metadata = {
-  title: 'Mayank Agarwal — Tech Blog',
-  description: 'Writing about AI agents, protocols, infrastructure, and the future of technology.',
+  title: 'Mayank Agarwal — AI Builder & Writer',
+  description: 'Building AI-native products and writing about the technology reshaping how we build — agents, protocols, infrastructure, and more.',
 }
 
 const TOPICS = [
@@ -39,11 +39,11 @@ export default function HomePage() {
     <>
       {/* HERO */}
       <div className="hero">
-        <div className="hero-tag">Tech Blog · AI &amp; Engineering</div>
+        <div className="hero-tag">AI Products · Technical Writing · Engineering</div>
         <h1 className={playfair.className}>
-          Writing about the<br /><em>future of AI</em>
+          Building and writing about<br /><em>the future of AI</em>
         </h1>
-        <p>Deep dives into AI agents, protocols, infrastructure, and the technology reshaping how we build.</p>
+        <p>AI-native products and deep technical writing — exploring agents, protocols, infrastructure, and the tools reshaping how we build.</p>
         <div className="hero-stats">
           <div className="stat">
             <div className={`stat-num ${playfair.className}`}>{allPosts.length}</div>
