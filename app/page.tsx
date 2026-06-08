@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Playfair_Display } from 'next/font/google'
 import { getAllPosts } from '@/lib/posts'
 import { getAllProducts } from '@/lib/products'
+import { getAllCanvases } from '@/lib/canvases'
 import type { ProductStatus } from '@/lib/products'
 import type { Metadata } from 'next'
 
@@ -32,6 +33,7 @@ function formatDate(iso: string) {
 export default function HomePage() {
   const allPosts = getAllPosts()
   const allProducts = getAllProducts()
+  const allCanvases = getAllCanvases()
   const recentPosts = allPosts.slice(0, 2)
 
   return (
@@ -132,15 +134,29 @@ export default function HomePage() {
             <h2 className={playfair.className}>Opportunity Canvas</h2>
           </div>
           <div className="posts-grid">
-            <div className="post-card" style={{ borderStyle: 'dashed', opacity: 0.7 }}>
-              <div className="card-category">Problem · Solution · Market</div>
-              <h3 className={playfair.className}>Canvases Coming Soon</h3>
-              <p>Structured PM artifacts documenting problems worth solving — customer segments, pain points, proposed solutions, and go-to-market thinking in a single view.</p>
-              <div className="card-footer">
-                <span style={{ color: 'var(--ink-muted)', fontSize: '0.85rem' }}>First canvas in progress</span>
-                <span className="card-read-link">Soon →</span>
+            {allCanvases.length > 0 ? (
+              allCanvases.map((canvas) => (
+                <Link key={canvas.slug} href={`/canvases/${canvas.slug}`} className="post-card">
+                  <div className="card-category">{canvas.tags[0]}</div>
+                  <h3 className={playfair.className}>{canvas.title}</h3>
+                  <p>{canvas.description}</p>
+                  <div className="card-footer">
+                    <span style={{ color: 'var(--ink-muted)', fontSize: '0.85rem' }}>{canvas.status}</span>
+                    <span className="card-read-link">View →</span>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="post-card" style={{ borderStyle: 'dashed', opacity: 0.7 }}>
+                <div className="card-category">Problem · Solution · Market</div>
+                <h3 className={playfair.className}>Canvases Coming Soon</h3>
+                <p>Structured PM artifacts documenting problems worth solving — customer segments, pain points, proposed solutions, and go-to-market thinking in a single view.</p>
+                <div className="card-footer">
+                  <span style={{ color: 'var(--ink-muted)', fontSize: '0.85rem' }}>First canvas in progress</span>
+                  <span className="card-read-link">Soon →</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

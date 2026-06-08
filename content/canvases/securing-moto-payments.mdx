@@ -1,0 +1,226 @@
+---
+title: "Securing MOTO Payments"
+tagline: "Eliminating card exposure in verbal & paper payments — a PayTo-based opportunity for any bank."
+description: "An opportunity canvas for a secure Mail Order / Telephone Order payment solution that collapses PCI scope and removes card data from phone and paper channels using PayTo on the NPP rails."
+status: "Discovery"
+tags: ["Payments", "PayTo / NPP", "PCI DSS", "Fraud", "Fintech"]
+date: "2026-06-08"
+---
+
+<div className="oc-grid">
+
+<div className="oc-card oc-c" data-num="01">
+  <h3>Problem</h3>
+  <ul>
+    <li>Card-not-present (CNP) fraud reached <b>$816M</b> in CY2024 — <b>90%</b> of all Australian card fraud and rising 19% YoY.</li>
+    <li>In verbal MOTO the full card is <b>exposed to the agent</b>; paper order forms leave card data unsafe if lost or copied.</li>
+    <li>Verbal MOTO sits in <b>SAQ D scope</b> (over 300 controls); penalties for non-compliance run <b>$5k–$100k/month</b>.</li>
+    <li>The <b>Scams Prevention Framework</b> imposes new sector obligations from <b>1 Jul 2026</b> (Tier 1 penalty up to $50M).</li>
+  </ul>
+  <p className="oc-note">MOTO is a primary contributor to CNP fraud — not the source of the full $913M headline.</p>
+</div>
+
+<div className="oc-card oc-b" data-num="02">
+  <h3>Users &amp; Customers</h3>
+  <ul>
+    <li><b>Merchants</b> taking phone &amp; mail payments: utilities, insurance, councils, healthcare, professional services.</li>
+    <li><b>Contact-centre agents</b> currently handling raw card numbers.</li>
+    <li><b>Less-digital customers</b> who rely on phone &amp; paper and are excluded by payment links.</li>
+    <li><b>The adopting bank</b> as scheme participant, app owner and merchant-services provider.</li>
+  </ul>
+</div>
+
+<div className="oc-card oc-g" data-num="03">
+  <h3>Solution</h3>
+  <ul>
+    <li><b>Bank PayTo for MOTO:</b> a PayID on the form or over the phone replaces card data entirely.</li>
+    <li>Customer approves a merchant-initiated pull payment <b>in their own bank's app</b> — async, real-time, under 60s.</li>
+    <li><b>Zero card data</b> held — collapses scope to SAQ A (22 controls).</li>
+    <li>Secures <b>both channels</b>: paper forms stay accessible, telephone orders need no card capture.</li>
+  </ul>
+</div>
+
+<div className="oc-card oc-full oc-b" data-num="04">
+  <h3>Competitive Analysis — Telephone Orders (3-way)</h3>
+  <table className="oc-cmp">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Current (verbal)</th>
+        <th>DTMF masking (Eckoh / PCI Pal)</th>
+        <th>Bank PayTo solution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Card data heard by agent</td><td>Yes — full number spoken aloud</td><td>No — tones masked</td><td>No — no card data used</td></tr>
+      <tr><td>Card data in call recording</td><td>Yes — permanent audio record</td><td>No</td><td>No</td></tr>
+      <tr><td>PCI DSS scope</td><td>SAQ D — over 300 controls</td><td>SAQ A — 22 controls</td><td>SAQ A — 22 controls</td></tr>
+      <tr><td>Customer authorises in app</td><td>No</td><td>No</td><td>Yes — biometric / PIN</td></tr>
+      <tr><td>Credit card support</td><td>Yes (all banks)</td><td>Yes (all banks)</td><td>Yes (issuing-bank cards in pilot)</td></tr>
+      <tr><td>Real-time settlement</td><td>T+1</td><td>T+1</td><td>Under 60 seconds</td></tr>
+      <tr><td>Customer needs card in hand</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+      <tr><td>Card data exists anywhere</td><td>Agent, recording, CRM</td><td>Payment processor</td><td>Nowhere</td></tr>
+      <tr><td>Works with other-bank customers</td><td>Yes</td><td>Yes</td><td>Via SMS link fallback</td></tr>
+      <tr><td>Deployment timeline</td><td>Already live</td><td>Weeks</td><td>9–12 months (pilot)</td></tr>
+    </tbody>
+  </table>
+  <p className="oc-note"><b>Read:</b> DTMF is the safety net for today; PayTo is the architecture for tomorrow. A bank can offer both — DTMF compatibility for customers at any institution, full secure MOTO for its own customers — and be first to give merchants that choice. DTMF's edge: any bank, deploys in weeks. PayTo's edge: customer authorisation in-app, zero card data anywhere, instant settlement.</p>
+</div>
+
+<div className="oc-card oc-full oc-c" data-num="05">
+  <h3>Competitive Analysis — Mail Orders (the DTMF blind spot)</h3>
+  <table className="oc-cmp">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>DTMF masking</th>
+        <th>Payment links</th>
+        <th>Bank PayTo solution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Secures paper forms</td><td>No — phone-only tech, no tones to mask</td><td>Partial — replaces the form</td><td>Yes — PayID on form replaces card data</td></tr>
+      <tr><td>Keeps paper process</td><td>N/A</td><td>No — eliminates the paper form</td><td>Yes — form stays the interface</td></tr>
+      <tr><td>Form safe if lost / copied</td><td>N/A</td><td>N/A</td><td>Yes — no card data to misuse</td></tr>
+      <tr><td>Serves less-digital customers</td><td>N/A</td><td>No — excludes them</td><td>Yes — async, no live device needed</td></tr>
+      <tr><td>PCI scope for paper handling</td><td>Not addressed</td><td>SAQ A</td><td>SAQ A — eliminated for paper</td></tr>
+      <tr><td>Covers both MOTO channels</td><td>No — telephone only</td><td>Partial</td><td>Yes — mail and telephone</td></tr>
+    </tbody>
+  </table>
+  <p className="oc-note"><b>Key differentiator:</b> Bank PayTo is the only approach securing both MOTO channels while preserving paper forms as an accessible interface. The customer writes a PayID instead of card data; approval happens asynchronously in the app. No competitor can claim this.</p>
+</div>
+
+<div className="oc-card oc-c" data-num="06">
+  <h3>Value Proposition</h3>
+  <ul>
+    <li><b>For merchants:</b> over 50% PCI cost reduction, fraud removal, retained phone/mail channels.</li>
+    <li><b>For customers:</b> card never shared; in-app authorisation they control.</li>
+    <li><b>For the bank:</b> new merchant revenue, app stickiness, AP+ standard-setting position.</li>
+  </ul>
+</div>
+
+<div className="oc-card oc-full oc-b" data-num="07">
+  <h3>Coverage &amp; Rollout Phasing</h3>
+  <div className="oc-funnel">
+    <div className="oc-lvl">
+      <div className="t">Phase 1 · Pilot</div>
+      <div className="v">Own-bank payers</div>
+      <div className="d">PayTo debit happy path — the payer authorises in their own bank's app. Zero card data, under 60s settlement. The wedge.</div>
+    </div>
+    <div className="oc-lvl">
+      <div className="t">Phase 2 · Cards</div>
+      <div className="v">Credit-card bridge</div>
+      <div className="d">A tokenisation bridge (Visa / Mastercard / Amex) extends the same flow to credit cards, not just bank-account debit.</div>
+    </div>
+    <div className="oc-lvl">
+      <div className="t">Phase 3 · Cross-bank</div>
+      <div className="v">Any PayTo bank</div>
+      <div className="d">As PayTo broadens across the 120+ NPP institutions, any payer's bank app works. An SMS-link fallback bridges the rest in the interim.</div>
+    </div>
+  </div>
+  <p className="oc-note"><b>Stated openly:</b> on Day 1 the full in-app experience needs the payer to bank with a PayTo-enabled institution; an SMS payment-link fallback covers everyone else until cross-bank PayTo matures. This coverage ramp — not universal Day-1 reach — is the honest shape of the rollout.</p>
+</div>
+
+<div className="oc-card oc-full oc-g" data-num="08">
+  <h3>Market Opportunity (illustrative · analyst-derived)</h3>
+  <div className="oc-funnel">
+    <div className="oc-lvl">
+      <div className="t">TAM</div>
+      <div className="v">$47B</div>
+      <div className="d">All Australian MOTO payments (card MOTO ~$18–22B + other MOTO/BECS ~$29B).</div>
+    </div>
+    <div className="oc-lvl">
+      <div className="t">SAM</div>
+      <div className="v">$1.1–1.4B</div>
+      <div className="d">~520–650K merchants (large-bank base) × ~$200K avg MOTO/yr × ~1.2% monetisation.</div>
+    </div>
+    <div className="oc-lvl">
+      <div className="t">SOM · Yr 3</div>
+      <div className="v">$1.2–1.8M</div>
+      <div className="d">50–75 merchants, 5–10% volume capture, 15% churn.</div>
+    </div>
+    <div className="oc-lvl">
+      <div className="t">SOM · Yr 5</div>
+      <div className="v">$8.5–11M</div>
+      <div className="d">200–300 merchants, 20–30% capture.</div>
+    </div>
+  </div>
+  <p className="oc-note">All sizing figures are analyst estimates built on stacked assumptions — present as illustrative, not externally sourced.</p>
+</div>
+
+<div className="oc-card oc-b" data-num="09">
+  <h3>Business Model</h3>
+  <ul>
+    <li><b>0.5%</b> per NPP transaction</li>
+    <li><b>$299/month</b> merchant platform fee</li>
+    <li><b>~0.3%</b> credit-card interchange (issuing-bank cards)</li>
+  </ul>
+  <p className="oc-note">Plus non-revenue value: merchant retention, app stickiness, standard-setting.</p>
+</div>
+
+<div className="oc-card oc-wide oc-g" data-num="10">
+  <h3>Success Metrics &amp; KPIs</h3>
+  <p className="oc-sub">Discovery go / no-go — 12 weeks</p>
+  <ul>
+    <li>≥ <b>5 pilot merchants</b> signed (letter of intent).</li>
+    <li>Merchant <b>willingness-to-pay</b> validated at the target price.</li>
+    <li>AP+ confirms a <b>MOTO PayTo spec</b> is on the roadmap.</li>
+    <li>MOTO <b>dispute / refund design</b> signed off by risk &amp; legal.</li>
+  </ul>
+  <p className="oc-sub">Product north-stars — pilot</p>
+  <ul>
+    <li>PCI scope <b>SAQ D → SAQ A</b> for every enrolled merchant.</li>
+    <li>Card-data fraud on enrolled MOTO volume <b>→ zero</b>.</li>
+    <li>Authorisation time <b>under 60s</b> at p90.</li>
+    <li><b>MOTO volume captured</b> per merchant; churn under target.</li>
+  </ul>
+  <p className="oc-note">Go / no-go is decided against the discovery column; the pilot is judged on the north-stars. No metric, no decision.</p>
+</div>
+
+<div className="oc-card oc-c" data-num="11">
+  <h3>Go-to-Market &amp; Adoption</h3>
+  <ul>
+    <li><b>Lead verticals:</b> high-MOTO, high-compliance-pain — insurance, utilities, councils, healthcare, professional services.</li>
+    <li><b>Channel:</b> the bank's existing merchant-services salesforce and portal relationships — no new acquisition engine to build.</li>
+    <li><b>Migration:</b> a drop-in for raw-card capture and DTMF — a PayID on the existing form, no merchant re-platforming.</li>
+    <li><b>Switching trigger:</b> lead with PCI cost reduction and the 1 Jul 2026 SPF deadline.</li>
+    <li><b>Onboarding:</b> ABN-verified merchant enrolment — which doubles as a scam control.</li>
+  </ul>
+</div>
+
+<div className="oc-card oc-c" data-num="12">
+  <h3>Why Now — Enabling Rails</h3>
+  <div className="oc-stats">
+    <div className="oc-stat"><div className="n">120+</div><div className="l">Institutions on NPP</div></div>
+    <div className="oc-stat"><div className="n">27M+</div><div className="l">PayID registrations (mid-2025)</div></div>
+    <div className="oc-stat"><div className="n">~2B</div><div className="l">NPP real-time payments / yr</div></div>
+  </div>
+  <p className="oc-note">PayTo live for billers since 2024; NPP designated critical infrastructure.</p>
+</div>
+
+<div className="oc-card oc-wide oc-c" data-num="13">
+  <h3>Key Risks &amp; Open Questions</h3>
+  <ul>
+    <li><b>NPP irreversibility</b> — no chargeback; needs a MOTO-specific dispute design.</li>
+    <li><b>APP / social-engineering scam risk</b> — mitigate via ABN-verified merchants, verified name in push, velocity limits, first-payment cool-down.</li>
+    <li><b>Credit-card support</b> — PayTo debits bank accounts only; cards need a Phase 2 tokenisation bridge.</li>
+    <li><b>ePayments Code &amp; PayID enumeration</b> — regulatory coverage and privacy questions to clear in discovery.</li>
+    <li><b>No MOTO PayTo API spec or vendor accreditation framework</b> — must be designed with AP+.</li>
+  </ul>
+</div>
+
+<div className="oc-card oc-g" data-num="14">
+  <h3>The Ask (ExCo)</h3>
+  <ul>
+    <li>GE-level executive sponsor</li>
+    <li><b>$300–500K</b> discovery sprint budget</li>
+    <li>Cross-functional working-group mandate</li>
+    <li>Regulatory pre-engagement clearance (RBA / ASIC / AUSTRAC)</li>
+    <li>5–8 pilot merchant nominations</li>
+  </ul>
+  <p className="oc-note">Path: ExCo approval → 12-wk discovery → go/no-go → Q1 2027 build → Q3 2027 live pilot.</p>
+</div>
+
+</div>
+
+<p className="oc-disc"><b>Sources &amp; caveats:</b> Fraud and rails figures verified May 2026 against the AusPayNet 2025 Fraud Report (CY2024), PCI SSC, RBA and AP+ documentation. PCI DSS is set by the global PCI Security Standards Council (not the RBA). SAQ D standardised to "over 300 controls". MOTO card value shown as an estimated range ($18–22B). All TAM/SAM/SOM and revenue projections are analyst-derived and illustrative. Re-verify against the next AusPayNet report and AP+ roadmap before reuse.</p>
