@@ -1,0 +1,470 @@
+---
+title: "BrandGuard"
+tagline: "AI domain intelligence that finds every brand gap before a squatter does"
+description: "How I built a 7-agent AI scanner that maps a brand's global domain exposure in under 5 minutes — covering the full PM journey from problem discovery to shipped product."
+status: "Live"
+tags: ["Node.js", "Claude AI", "Multi-Agent", "Express", "Vercel"]
+date: "2026-06-08"
+link: "https://brandguard-eight.vercel.app/"
+---
+
+Most brands discover they've been cybersquatted the wrong way. A customer emails to say they got a phishing link from `yourcompany-careers.co.uk`. Legal receives a cease-and-desist from a fake storefront at `yourcompanyshop.de`. A journalist finds a counterfeit site ranking above the real one in Germany. By the time the brand team finds out, the damage — stolen credentials, fake job applications, eroded trust — is already underway.
+
+The economics of inaction are brutal. Registering a domain proactively costs $12–$20. Reclaiming a cybersquatted one through UDRP arbitration costs $1,500–$5,000 and takes 2–3 months — assuming you win. The problem isn't that brand teams don't care. It's that no tool existed to make proactive protection fast, cheap, and accessible without an IP attorney. BrandGuard is my attempt to fix that.
+
+---
+
+## The Problem: Discovery Phase
+
+Before writing a line of code, I spent time mapping the actual problem space.
+
+**The status quo is reactive by design.** When I asked brand managers how they currently discover domain threats, the answers were consistent: customer complaints, Google Alerts that fire too late, and annual audits by IP attorneys. None of those workflows catch threats before they cause harm.
+
+The existing alternatives all have the same fatal flaw — they're either too slow, too expensive, or too manual to use proactively:
+
+- **IP attorneys** bill at $400–$800/hr for manual domain audits that happen annually at best. By the time the report lands, cybersquatters have had 12 months to act.
+- **Manual WHOIS lookups** don't scale. Checking 50 brand variants across 80 ccTLDs manually is a full week's work, and the data comes back as unstructured text.
+- **Commercial brand monitoring platforms** — MarkMonitor, CSC, AppDetex — are enterprise-priced, require procurement approval and legal sign-off, and take weeks to onboard. They're not accessible to a startup or a mid-size brand team acting quickly.
+
+**The gap I identified:** No tool existed that could take a company name, understand its global footprint, enumerate every plausible domain variant, check live registration status for all of them, and return a prioritised action list — in minutes, for free.
+
+**The damage model is asymmetric.** One cybersquatted domain in a key market can enable a phishing campaign targeting thousands of customers, a fake recruitment site that poisons your employer brand, or counterfeit product sales that generate customer service chaos. The attacker pays $12 to register it. The brand pays $5,000 and three months of lawyer time to get it back.
+
+---
+
+## Who Feels This Pain
+
+Three distinct personas emerged from my research, each with a different relationship to the same problem:
+
+<div className="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Persona</th>
+      <th>Role</th>
+      <th>Core Pain</th>
+      <th>What They Need</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Brand Manager</strong></td>
+      <td>Owns brand consistency across markets</td>
+      <td>Discovers threats reactively via customer complaints</td>
+      <td>Clear risk language, one-click registration actions</td>
+    </tr>
+    <tr>
+      <td><strong>IP / Legal Counsel</strong></td>
+      <td>Manages trademark portfolio and disputes</td>
+      <td>Manual audits are expensive and infrequent</td>
+      <td>Exportable evidence, raw RDAP data for UDRP filings</td>
+    </tr>
+    <tr>
+      <td><strong>Startup Founder</strong></td>
+      <td>Protecting brand while scaling internationally</td>
+      <td>Doesn't know which domains to register before a new market launch</td>
+      <td>Fast checklist before announcing the expansion</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+The key insight from this exercise: all three share the same underlying problem — **reactive discovery** — but they need different output formats. The brand manager needs a traffic-light risk summary and a "Register Now" button. Legal needs the full RDAP registrar and expiry data for a cease-and-desist. The founder needs a 10-minute pre-launch checklist. One report has to serve all three.
+
+---
+
+## The Three Insights That Made It Buildable
+
+I almost didn't build this. The scope felt large — you'd need a database of every company's trademark portfolio, their operating countries, their brand variations, and live domain status for hundreds of combinations. That's a data company, not a weekend product.
+
+Three realisations changed my assessment:
+
+<div className="takeaway">
+  <h2>What Made This Possible Now</h2>
+  <p><strong>1. AI already knows your brand.</strong> An LLM like Claude has absorbed enormous amounts of information about most companies — their geographic footprint, trademark registrations, product lines, slogans, common misspellings. I don't need a proprietary database. I just need to ask the right questions in the right sequence.</p>
+  <p><strong>2. RDAP makes live domain checking completely free.</strong> The Registration Data Access Protocol is a public, keyless API standard — structured JSON responses from every major TLD registry. No API key. No subscription. No rate limit that matters at this scale. It's the modern replacement for WHOIS (which returns unstructured text and often requires a paid API). The entire domain-checking layer costs exactly $0.</p>
+  <p><strong>3. The output must be a Top 10 list, not a spreadsheet.</strong> Users don't need 300 rows of domain data. They need "register these 10 domains, starting with this one, here's the link." The product's value is the prioritisation and the action — not the data. Any tool that stops at the data layer has missed the point.</p>
+</div>
+
+---
+
+## Defining the MVP
+
+With the problem clear and the approach validated, I wrote a PRD before touching any code. The discipline of forcing explicit goal definitions and non-goals before building pays off every time.
+
+### Goals
+
+<div className="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Goal</th>
+      <th>Metric</th>
+      <th>Target</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>G1</td>
+      <td>Help brand teams discover gaps they didn't know existed</td>
+      <td>Avg. new gaps found per Fortune 500 scan</td>
+      <td>&gt; 20 gaps</td>
+    </tr>
+    <tr>
+      <td>G2</td>
+      <td>Reduce time from "brand concern" to actionable report</td>
+      <td>Company name entry → full report</td>
+      <td>&lt; 5 minutes</td>
+    </tr>
+    <tr>
+      <td>G3</td>
+      <td>Make domain protection accessible without IP attorneys</td>
+      <td>% of users who act on results without legal help</td>
+      <td>&gt; 80%</td>
+    </tr>
+    <tr>
+      <td>G4</td>
+      <td>Drive immediate registration of HIGH risk gaps</td>
+      <td>% of HIGH risk gaps where "Register Now" is clicked</td>
+      <td>&gt; 40%</td>
+    </tr>
+    <tr>
+      <td>G5</td>
+      <td>Build trust through transparency</td>
+      <td>Users who understand why each domain is flagged</td>
+      <td>&gt; 90%</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+### Non-Goals (Just as Important)
+
+Explicit non-goals keep scope from expanding indefinitely. For v1, I ruled out:
+
+- **Automatic domain registration** — requires payment integration, registrar API agreements, and legal liability for incorrect purchases
+- **Real-time trademark monitoring** — out of scope; requires webhook integrations with multiple IP office APIs (USPTO, EUIPO)
+- **UDRP filing tooling** — legal workflows require attorney involvement
+- **Persistent user accounts** — requires auth and a database; deferred to v2
+- **Social handle monitoring** — Twitter/X, Instagram, TikTok handles are a different data source and a different threat vector
+
+### Must-Have Requirements (P0)
+
+<div className="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Requirement</th>
+      <th>Acceptance Criteria</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>P0-01</td>
+      <td>User enters company name and starts a scan</td>
+      <td>Scan starts within 2s; scan ID returned immediately</td>
+    </tr>
+    <tr>
+      <td>P0-02</td>
+      <td>7 AI agents run in a 4-phase orchestrated pipeline</td>
+      <td>All 7 agents complete per the Phase 1→4 dependency graph; none skipped</td>
+    </tr>
+    <tr>
+      <td>P0-03</td>
+      <td>RDAP status check for every generated domain</td>
+      <td>Every domain receives a status: available / registered / unknown</td>
+    </tr>
+    <tr>
+      <td>P0-04</td>
+      <td>Risk level (HIGH / MEDIUM / LOW) for each domain</td>
+      <td>HIGH = exact brand match in a key market; every record has a riskLevel</td>
+    </tr>
+    <tr>
+      <td>P0-05</td>
+      <td>Top 10 Priority Actions table with "Register Now" links</td>
+      <td>GoDaddy pre-filled URLs open correctly in new tab</td>
+    </tr>
+    <tr>
+      <td>P0-06</td>
+      <td>Live dashboard streams agent progress in real time</td>
+      <td>SSE events update agent card status within 500ms of server event</td>
+    </tr>
+    <tr>
+      <td>P0-07</td>
+      <td>Demo mode loads pre-computed Nike data — no API key needed</td>
+      <td>`/api/demo/nike` returns in &lt;200ms; full results render correctly</td>
+    </tr>
+    <tr>
+      <td>P0-08</td>
+      <td>Rate limiting on RDAP calls (max 10 req/sec)</td>
+      <td>Token bucket enforces ≤10 concurrent RDAP requests; no 429s from registries</td>
+    </tr>
+    <tr>
+      <td>P0-09</td>
+      <td>Each agent handles API failures gracefully with retry</td>
+      <td>3 retry attempts with exponential backoff; failure logged without crashing the scan</td>
+    </tr>
+    <tr>
+      <td>P0-10</td>
+      <td>Full results table is sortable and filterable</td>
+      <td>Sort on any column; independent filters for Status, Risk, Country, TLD Type</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+---
+
+## Architecture: The 7-Agent, 4-Phase Pipeline
+
+This was the most important design decision in the entire project. The naive approach — one big prompt asking Claude to "analyse brand X's domain exposure" — doesn't work reliably. The output is too long, the reasoning gets muddled, and you can't debug which part failed.
+
+The key insight is that brand domain analysis is a **dependent knowledge graph**, not a single question. Each stage's output is the input to the next:
+
+```
+Brand name → Who are you? → Where do you operate? → What are you trademarked as?
+                                    ↓
+                       What domains should exist?
+                                    ↓
+              Which ones actually exist?  +  Who's squatting your brand?
+                                    ↓
+                       What should you do first?
+```
+
+This maps cleanly to 7 agents across 4 phases:
+
+<div className="stack">
+  <div className="stack-layer">
+    <div className="stack-label l1">🏷️ Phase 1 — Parallel</div>
+    <div className="stack-protos">
+      <span className="sp">Agent 1: Brand Intelligence</span>
+      <span className="sp">Agent 2: Country Footprint</span>
+      <span className="sp">Agent 3: Trademark Research</span>
+    </div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l2">🔢 Phase 2 — Sequential</div>
+    <div className="stack-protos">
+      <span className="sp">Agent 4: Domain Enumeration</span>
+    </div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l3">🌐 Phase 3 — Parallel</div>
+    <div className="stack-protos">
+      <span className="sp">Agent 5: Domain Status (RDAP)</span>
+      <span className="sp">Agent 7: Competitive Intelligence</span>
+    </div>
+  </div>
+  <div className="stack-layer">
+    <div className="stack-label l4">📊 Phase 4 — Sequential</div>
+    <div className="stack-protos">
+      <span className="sp">Agent 6: Risk Assessment → Top 10</span>
+    </div>
+  </div>
+</div>
+
+**Why not one mega-prompt?** Three reasons drove the multi-agent design:
+
+- **Debuggability.** When Agent 2 returns the wrong countries for a company, I can test it in isolation. A single 4,000-token prompt that produces wrong output gives you nowhere to start.
+- **Parallelism saves ~60% of wall-clock time.** Phases 1 and 3 run agents in parallel with `Promise.all()`. Running all 7 sequentially would take roughly 3× as long.
+- **Streaming works naturally.** Each agent logs its reasoning token-by-token as the LLM generates it. Users watch the agents "think" in real time — which builds trust and makes wait time feel productive.
+
+**The most important architecture insight:** Agent 5 — the domain status checker — uses **zero AI tokens**. The risk classification logic (`assignRisk`, `classifyOwner`, `estimateCost`) is pure deterministic JavaScript. This is the most data-intensive step (checking hundreds of RDAP responses), and removing the LLM from it dramatically reduces cost and latency.
+
+> The right tool for pattern-matching structured data isn't an LLM. It's a function. Save your AI tokens for the reasoning that actually requires intelligence.
+
+---
+
+## Tech Stack Decisions
+
+Every technology choice was a deliberate decision, not a default. Here's the table I worked through before starting:
+
+<div className="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Decision</th>
+      <th>Chosen</th>
+      <th>Rejected</th>
+      <th>Reason</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>AI model</strong></td>
+      <td>Claude Sonnet + Gemini / Groq</td>
+      <td>Fine-tuned model</td>
+      <td>LLM general knowledge of companies is sufficient; no training data needed</td>
+    </tr>
+    <tr>
+      <td><strong>Domain lookup</strong></td>
+      <td>RDAP (free, structured JSON)</td>
+      <td>WHOIS (unstructured text, paid)</td>
+      <td>RDAP is the modern standard; returns clean JSON that's straightforward to parse</td>
+    </tr>
+    <tr>
+      <td><strong>Streaming</strong></td>
+      <td>Server-Sent Events (SSE)</td>
+      <td>WebSockets</td>
+      <td>Scans are unidirectional — server pushes, browser never sends updates back. SSE is simpler, no upgrade handshake, native browser `EventSource` API</td>
+    </tr>
+    <tr>
+      <td><strong>Frontend</strong></td>
+      <td>Vanilla HTML / CSS / JS</td>
+      <td>React, Next.js</td>
+      <td>Zero build step. Ships in seconds. Fully maintainable by one person. No framework overhead for a single-page app</td>
+    </tr>
+    <tr>
+      <td><strong>State management</strong></td>
+      <td>In-memory Map + EventEmitter</td>
+      <td>Redis, Postgres</td>
+      <td>Zero infrastructure for v1. The tradeoff (state lost on restart, no horizontal scaling) is acceptable for a proof-of-concept</td>
+    </tr>
+    <tr>
+      <td><strong>Deployment</strong></td>
+      <td>Vercel (Fluid Compute)</td>
+      <td>Railway, Fly.io, Render</td>
+      <td>Fluid Compute reuses function instances across concurrent requests — essential for SSE, where `POST /scan/start` and `GET /scan/:id/status` must share the same in-memory state</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+The Vercel decision deserves elaboration. Traditional serverless — one isolated invocation per request — would break this architecture entirely. The scan is started in one HTTP request and streamed in another; they need to share the same in-memory `Map`. Vercel's Fluid Compute keeps a warm instance alive for the duration of a scan, making this work without any external state store.
+
+---
+
+## Build Order: Inside Out
+
+The build sequence matters as much as the architecture. I followed one rule throughout: **build from the innermost dependencies first, the entry point last.**
+
+```
+1. services/rate-limiter.js    → Pure utility, no deps. Test it first.
+2. services/rdap.js            → Domain lookup, depends on rate-limiter
+3. services/tld-data.js        → Static country→ccTLD map, no logic to test
+4. services/scan-store.js      → In-memory state + EventEmitter
+5. services/claude.js          → AI provider abstraction (Anthropic / Gemini / Groq)
+6. agents/agent1–7             → Each follows the same template; Agent 5 is pure RDAP, no AI
+7. orchestrator.js             → Glues agents into the 4-phase pipeline
+8. routes/scan.js              → POST start, GET SSE stream, GET results
+9. server.js                   → Entry point, ties everything together
+10. public/index.html          → Frontend — built last when the API shape is stable
+11. demo/nike-demo.json        → Demo data — built after schema is finalised
+```
+
+Building the frontend last is counterintuitive but correct. Every time I've built the UI first, I've had to refactor it when the API shape changed. Build the API until it's stable, then build the thing that calls it.
+
+**The `onChunk` streaming pattern** is the key implementation detail for the live dashboard:
+
+```js
+const result = await runAgent({
+  systemPrompt,
+  userPrompt,
+  onChunk: (text) => appendLog(scanId, 'agent1', text),
+})
+```
+
+Every token the LLM generates is immediately forwarded to the SSE log stream. Users see the agent reasoning as it happens. This isn't just aesthetics — it builds trust. When users see the agent working through the logic ("I can see Nike operates in 38 countries, the key markets are the US, UK, Germany, Japan, Australia..."), they understand and believe the output.
+
+Two other critical implementation decisions:
+
+- **Rate limiting lives at the call site, not the orchestrator.** The token bucket is inside `rdap.js`. Any code anywhere in the codebase that calls `checkDomain()` is automatically rate-limited, without the orchestrator knowing or caring.
+- **Log lines are capped at 500 per agent.** Without this cap, a verbose Llama 70B response streaming thousands of tokens will exhaust server memory. Defensive limits on unbounded data are always worth adding.
+
+---
+
+## Multi-Provider AI Support
+
+The original implementation used Anthropic Claude exclusively. I added two alternatives during development:
+
+**Google Gemini** for free-tier access — useful for development without API spend. The free tier (15 RPM) is frequently hit during a 7-agent scan, so the implementation added retry logic around Gemini SDK calls.
+
+**Groq** became the default for the `.env.example` template. Groq's API serves `llama-3.3-70b-versatile` with extremely generous free limits (~6,000 requests/minute) and very low latency. Development cost on Groq: **$0**.
+
+The abstraction in `claude.js` kept all 7 agents unchanged — they call a single `runAgent()` function and have no awareness of which provider is underneath. Switching providers is one environment variable:
+
+```bash
+AI_PROVIDER=groq   # or: anthropic, gemini
+```
+
+---
+
+## Deployment: The Three Gotchas
+
+Deployment went smoothly except for three issues worth documenting, because they're easy to hit and not obvious:
+
+**1. Vercel project names must be lowercase.** My local directory was called "Brand Guard" (capital B, capital G, with a space). Running `vercel link` failed because Vercel uses the directory name as the project name and applies npm naming rules. Fix: add `"name": "brandguard"` explicitly to `vercel.json`.
+
+```json
+{
+  "version": 2,
+  "name": "brandguard",
+  "builds": [{ "src": "server.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "/server.js" }]
+}
+```
+
+**2. `AI_PROVIDER` and the API key must both be set together.** I set `GOOGLE_API_KEY` in the Vercel dashboard but forgot to also set `AI_PROVIDER=gemini`. The app defaulted to Anthropic, looked for `ANTHROPIC_API_KEY`, didn't find it, and failed silently on the first scan. Both variables are required.
+
+**3. Google API key format matters.** Google API keys for Gemini start with `AIza...`. Keys generated from other Google services (service accounts, OAuth credentials) won't work with the Gemini SDK, even if they look like valid keys. Get the key specifically from [Google AI Studio](https://aistudio.google.com).
+
+---
+
+## What Ships: The User Journey
+
+The product is a single-page app with three views:
+
+**1. Scan input.** Enter a company name. Optionally add focus countries and extra brand/product names. Click "Run BrandGuard Scan" — or try the Nike demo instantly, no API key needed.
+
+**2. Live scanning dashboard.** Seven agent cards appear, each with a status indicator, a progress bar, and a live log stream showing the agent's reasoning in real time. A progress ring tracks overall completion (0/7 → 7/7) across the four phases.
+
+**3. Results report.** On completion, the report shows:
+- **Summary bar:** Domains checked, gaps found, HIGH / MEDIUM / LOW risk counts, countries scanned, total budget estimate
+- **Top 10 Priority Actions:** Ranked table with domain, status, risk level, estimated cost, rationale, and a "Register Now" button that opens the registrar with the domain pre-filled
+- **All Domains Checked:** Sortable, filterable table of every domain in the scan — filter by status, risk, TLD type, or country; expand any row to see raw RDAP data
+- **Competitor Threats:** Domains where competitors are using your brand name
+- **Trademark Gaps:** Trademarked names that don't have corresponding domain coverage
+
+Export the full report as CSV for your legal team with one click.
+
+---
+
+## What v1 Taught Me
+
+<div className="takeaway">
+  <h2>Key Learnings</h2>
+  <ul>
+    <li><strong>The no-build-step frontend was the right call for v1.</strong> Shipping a vanilla HTML file meant zero configuration, instant iteration, and no build pipeline to maintain. The cost comes at v2 when you need component reuse and state management — but by then, you've validated the product is worth the investment.</li>
+    <li><strong>RDAP is underused by builders.</strong> Almost every domain-checking product I've seen uses a paid WHOIS API or a third-party data service. RDAP returns structured JSON from the authoritative registry for free. The only gotcha is rate limiting — solvable with a token bucket.</li>
+    <li><strong>The multi-provider AI abstraction paid off immediately.</strong> Groq's free tier made the entire development phase cost $0 in API fees. Switching to Claude for production quality is one environment variable. Every AI product should build this abstraction from day one.</li>
+    <li><strong>Demo mode was one of the best product decisions.</strong> The pre-computed Nike demo lets anyone evaluate the full product experience without an API key or account. Users who see a complete output before signing up convert at a much higher rate than users who see a blank form. Give people something to react to.</li>
+  </ul>
+</div>
+
+---
+
+## What's Next
+
+v1 validates the core hypothesis: AI can map a brand's domain exposure in minutes, for free, without an attorney. The most requested extensions point clearly to v2:
+
+**v1.1 — Persistence (Next):**
+- Persistent scan history with user accounts (Clerk auth)
+- External state store (Redis) to replace the in-memory Map for multi-instance production scaling
+- Brand Domain Protection Score — a single 0–100 score for any company, suitable for embedding in board reports
+
+**v2.0 — Monitoring (Future):**
+- Weekly monitoring cron with email diff alerts ("3 new squatters appeared this month")
+- Bulk upload — scan 50 brand names from a CSV, useful for agencies
+- Social handle monitoring — extend competitive intelligence to Twitter/X, Instagram, LinkedIn
+
+v1's job was to prove the concept and ship something real. It did.
+
+---
+
+## Try It
+
+The product is live at [brandguard-eight.vercel.app](https://brandguard-eight.vercel.app). Try the Nike demo — no account or API key needed — to see the full output in under a minute.
+
+The source is open at [github.com/reachmayankagarwal/brandguard](https://github.com/reachmayankagarwal/brandguard) if you want to run your own instance or adapt the multi-agent architecture for a different domain.
