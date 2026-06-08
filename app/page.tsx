@@ -33,6 +33,7 @@ export default function HomePage() {
   const featured = getFeaturedPost()
   const allPosts = getAllPosts()
   const allProducts = getAllProducts()
+  const recentPosts = allPosts.slice(0, 2)
 
   return (
     <>
@@ -60,64 +61,9 @@ export default function HomePage() {
       </div>
 
       <div className="main">
-        {/* FEATURED */}
-        {featured && (
-          <div id="articles">
-            <div className="section-header">
-              <h2 className={playfair.className}>Featured Article</h2>
-            </div>
-            <div className="featured-post">
-              <div>
-                <div className="featured-eyebrow">
-                  <span className="badge-featured">Featured</span>
-                  <span className="post-date">{formatDate(featured.date)} · {featured.readTime}</span>
-                </div>
-                <h3 className={playfair.className}>{featured.title}</h3>
-                <p>{featured.description}</p>
-                <div className="post-meta">
-                  {featured.tags.map((tag, i) => (
-                    <span key={tag} className={`post-tag${i === 1 ? ' green' : i === 2 ? ' amber' : ''}`}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <Link className="post-read" href={`/posts/${featured.slug}`}>
-                  Read Article →
-                </Link>
-              </div>
-              <div className="featured-visual">
-                <span className="visual-label">Protocols Covered</span>
-                <div className="visual-chips">
-                  {['MCP', 'A2A', 'ACP', 'ANP', 'AG-UI', 'AP2', 'UCP', 'X42', 'W3C'].map((p) => (
-                    <span key={p} className="vc">{p}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ALL POSTS */}
-        <div className="section-header">
-          <h2 className={playfair.className}>All Articles</h2>
-        </div>
-        <div className="posts-grid">
-          {allPosts.map((post) => (
-            <Link key={post.slug} href={`/posts/${post.slug}`} className="post-card">
-              <div className="card-category">{post.tags[0]}</div>
-              <h3 className={playfair.className}>{post.title}</h3>
-              <p>{post.description}</p>
-              <div className="card-footer">
-                <span className="text-[var(--ink-muted)]">{formatDate(post.date)} · {post.readTime}</span>
-                <span className="card-read-link">Read →</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
         {/* PRODUCTS */}
         {allProducts.length > 0 && (
-          <div id="products" style={{ marginTop: '64px' }}>
+          <div id="products">
             <div className="section-header">
               <h2 className={playfair.className}>Products</h2>
             </div>
@@ -152,6 +98,73 @@ export default function HomePage() {
             </div>
           </div>
         )}
+
+        {/* LATEST ARTICLES */}
+        <div id="articles" style={{ marginTop: '64px' }}>
+          <div className="section-header">
+            <h2 className={playfair.className}>Latest Articles</h2>
+            <Link href="/articles" className="card-read-link" style={{ fontSize: '0.9rem' }}>
+              View all →
+            </Link>
+          </div>
+
+          {/* Featured */}
+          {featured && (
+            <div style={{ marginBottom: '32px' }}>
+              <div className="featured-post">
+                <div>
+                  <div className="featured-eyebrow">
+                    <span className="badge-featured">Featured</span>
+                    <span className="post-date">{formatDate(featured.date)} · {featured.readTime}</span>
+                  </div>
+                  <h3 className={playfair.className}>{featured.title}</h3>
+                  <p>{featured.description}</p>
+                  <div className="post-meta">
+                    {featured.tags.map((tag, i) => (
+                      <span key={tag} className={`post-tag${i === 1 ? ' green' : i === 2 ? ' amber' : ''}`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <Link className="post-read" href={`/posts/${featured.slug}`}>
+                    Read Article →
+                  </Link>
+                </div>
+                <div className="featured-visual">
+                  <span className="visual-label">Protocols Covered</span>
+                  <div className="visual-chips">
+                    {['MCP', 'A2A', 'ACP', 'ANP', 'AG-UI', 'AP2', 'UCP', 'X42', 'W3C'].map((p) => (
+                      <span key={p} className="vc">{p}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recent (non-featured) */}
+          {recentPosts.length > 0 && (
+            <div className="posts-grid">
+              {recentPosts.map((post) => (
+                <Link key={post.slug} href={`/posts/${post.slug}`} className="post-card">
+                  <div className="card-category">{post.tags[0]}</div>
+                  <h3 className={playfair.className}>{post.title}</h3>
+                  <p>{post.description}</p>
+                  <div className="card-footer">
+                    <span className="text-[var(--ink-muted)]">{formatDate(post.date)} · {post.readTime}</span>
+                    <span className="card-read-link">Read →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <Link href="/articles" className="post-read" style={{ display: 'inline-block' }}>
+              View all {allPosts.length} articles →
+            </Link>
+          </div>
+        </div>
 
         {/* TOPICS */}
         <div className="topics" id="topics">
