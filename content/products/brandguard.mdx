@@ -12,6 +12,20 @@ Most brands discover they've been cybersquatted the wrong way. A customer emails
 
 The economics of inaction are brutal. Registering a domain proactively costs $12–$20. Reclaiming a cybersquatted one through UDRP arbitration costs $1,500–$5,000 and takes 2–3 months — assuming you win. The problem isn't that brand teams don't care. It's that no tool existed to make proactive protection fast, cheap, and accessible without an IP attorney. BrandGuard is my attempt to fix that.
 
+<div className="cost-split">
+  <div className="cost-card pro">
+    <div className="cost-card-label">Register Proactively</div>
+    <div className="cost-number">$12–$20</div>
+    <div className="cost-detail">Per domain · Immediate · You own it instantly · No attorney needed</div>
+  </div>
+  <div className="cost-vs">vs</div>
+  <div className="cost-card con">
+    <div className="cost-card-label">Reclaim via UDRP</div>
+    <div className="cost-number">$1,500–$5,000</div>
+    <div className="cost-detail">+ 2–3 months · Outcome not guaranteed · Attorney required · Brand damage already done</div>
+  </div>
+</div>
+
 ---
 
 ## The Problem: Discovery Phase
@@ -235,34 +249,131 @@ Brand name → Who are you? → Where do you operate? → What are you trademark
 
 This maps cleanly to 7 agents across 4 phases:
 
-<div className="stack">
-  <div className="stack-layer">
-    <div className="stack-label l1">🏷️ Phase 1 — Parallel</div>
-    <div className="stack-protos">
-      <span className="sp">Agent 1: Brand Intelligence</span>
-      <span className="sp">Agent 2: Country Footprint</span>
-      <span className="sp">Agent 3: Trademark Research</span>
+<div className="pipeline">
+  <div className="pipeline-phase">
+    <div className="pipeline-phase-header" style={{borderLeftColor: '#1d4ed8', borderLeftWidth: '4px', borderLeftStyle: 'solid'}}>
+      <div>
+        <div className="pipeline-phase-name">Phase 1</div>
+        <div className="pipeline-phase-desc">Who is the brand? Where does it operate? What is it trademarked as?</div>
+      </div>
+      <span className="pipeline-mode parallel">⚡ Parallel</span>
+    </div>
+    <div className="pipeline-agents">
+      <div className="pipeline-agent">
+        <span className="pipeline-agent-icon">🏷️</span>
+        <div>
+          <div className="pipeline-agent-name">Brand Intelligence</div>
+          <div className="pipeline-agent-desc">Primary brand, sub-brands, products, slogans, typos, competitors</div>
+        </div>
+      </div>
+      <div className="pipeline-agent">
+        <span className="pipeline-agent-icon">🌍</span>
+        <div>
+          <div className="pipeline-agent-name">Country Footprint</div>
+          <div className="pipeline-agent-desc">Maps operating countries with priority scores → ccTLDs</div>
+        </div>
+      </div>
+      <div className="pipeline-agent">
+        <span className="pipeline-agent-icon">⚖️</span>
+        <div>
+          <div className="pipeline-agent-name">Trademark Research</div>
+          <div className="pipeline-agent-desc">Registered marks, trademark classes, jurisdictions, gap risks</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div className="stack-layer">
-    <div className="stack-label l2">🔢 Phase 2 — Sequential</div>
-    <div className="stack-protos">
-      <span className="sp">Agent 4: Domain Enumeration</span>
+
+  <div className="pipeline-connector">
+    <div className="pipeline-connector-line"></div>
+    <span className="pipeline-connector-label">All Phase 1 results collected</span>
+    <div className="pipeline-connector-line"></div>
+  </div>
+
+  <div className="pipeline-phase">
+    <div className="pipeline-phase-header" style={{borderLeftColor: '#059669', borderLeftWidth: '4px', borderLeftStyle: 'solid'}}>
+      <div>
+        <div className="pipeline-phase-name">Phase 2</div>
+        <div className="pipeline-phase-desc">What domains should this brand own?</div>
+      </div>
+      <span className="pipeline-mode sequential">→ Sequential</span>
+    </div>
+    <div className="pipeline-agents">
+      <div className="pipeline-agent" style={{flex: 'none', width: '100%'}}>
+        <span className="pipeline-agent-icon">🔢</span>
+        <div>
+          <div className="pipeline-agent-name">Domain Enumeration</div>
+          <div className="pipeline-agent-desc">Generates the full domain matrix: brand variants × keywords × gTLDs × ccTLDs → hundreds of combinations to check</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div className="stack-layer">
-    <div className="stack-label l3">🌐 Phase 3 — Parallel</div>
-    <div className="stack-protos">
-      <span className="sp">Agent 5: Domain Status (RDAP)</span>
-      <span className="sp">Agent 7: Competitive Intelligence</span>
+
+  <div className="pipeline-connector">
+    <div className="pipeline-connector-line"></div>
+    <span className="pipeline-connector-label">Hundreds of domains queued for checking</span>
+    <div className="pipeline-connector-line"></div>
+  </div>
+
+  <div className="pipeline-phase">
+    <div className="pipeline-phase-header" style={{borderLeftColor: '#db2777', borderLeftWidth: '4px', borderLeftStyle: 'solid'}}>
+      <div>
+        <div className="pipeline-phase-name">Phase 3</div>
+        <div className="pipeline-phase-desc">Which domains actually exist? Who's using our brand name?</div>
+      </div>
+      <span className="pipeline-mode parallel">⚡ Parallel</span>
+    </div>
+    <div className="pipeline-agents">
+      <div className="pipeline-agent">
+        <span className="pipeline-agent-icon">🌐</span>
+        <div>
+          <div className="pipeline-agent-name">Domain Status <span className="zero-tokens">0 AI tokens</span></div>
+          <div className="pipeline-agent-desc">RDAP checks every domain — available, registered, or squatted. Pure deterministic logic.</div>
+        </div>
+      </div>
+      <div className="pipeline-agent">
+        <span className="pipeline-agent-icon">🕵️</span>
+        <div>
+          <div className="pipeline-agent-name">Competitive Intelligence</div>
+          <div className="pipeline-agent-desc">Identifies competitors using your brand name in domains they own</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div className="stack-layer">
-    <div className="stack-label l4">📊 Phase 4 — Sequential</div>
-    <div className="stack-protos">
-      <span className="sp">Agent 6: Risk Assessment → Top 10</span>
+
+  <div className="pipeline-connector">
+    <div className="pipeline-connector-line"></div>
+    <span className="pipeline-connector-label">All domain statuses resolved</span>
+    <div className="pipeline-connector-line"></div>
+  </div>
+
+  <div className="pipeline-phase">
+    <div className="pipeline-phase-header" style={{borderLeftColor: '#d97706', borderLeftWidth: '4px', borderLeftStyle: 'solid'}}>
+      <div>
+        <div className="pipeline-phase-name">Phase 4</div>
+        <div className="pipeline-phase-desc">What should you do first?</div>
+      </div>
+      <span className="pipeline-mode sequential">→ Sequential</span>
+    </div>
+    <div className="pipeline-agents">
+      <div className="pipeline-agent" style={{flex: 'none', width: '100%'}}>
+        <span className="pipeline-agent-icon">📊</span>
+        <div>
+          <div className="pipeline-agent-name">Risk Assessment</div>
+          <div className="pipeline-agent-desc">Ranks all domains by priority, estimates acquisition budget, and generates the Top 10 action list with direct registrar links</div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div className="pipeline-output">
+    <span>🎯</span>
+    <strong>Top 10 Priority Action List</strong>
+    <small>— Register · Monitor · Escalate · Estimated cost per domain</small>
+  </div>
+</div>
+
+<div className="pipeline-time-callout">
+  ⚡ <strong>~60% faster</strong> than running all 7 agents sequentially — Phases 1 and 3 use <code>Promise.all()</code> to run their agents in parallel
 </div>
 
 **Why not one mega-prompt?** Three reasons drove the multi-agent design:
@@ -274,6 +385,41 @@ This maps cleanly to 7 agents across 4 phases:
 **The most important architecture insight:** Agent 5 — the domain status checker — uses **zero AI tokens**. The risk classification logic (`assignRisk`, `classifyOwner`, `estimateCost`) is pure deterministic JavaScript. This is the most data-intensive step (checking hundreds of RDAP responses), and removing the LLM from it dramatically reduces cost and latency.
 
 > The right tool for pattern-matching structured data isn't an LLM. It's a function. Save your AI tokens for the reasoning that actually requires intelligence.
+
+Here's how the risk scoring works for every domain the scanner checks:
+
+<div className="risk-cards">
+  <div className="risk-item high">
+    <span className="risk-item-badge">HIGH</span>
+    <h4>Act immediately</h4>
+    <ul>
+      <li>Exact brand match</li>
+      <li>Key market (priority score ≥ 0.5)</li>
+      <li>Available or registered by squatter</li>
+    </ul>
+    <div className="risk-item-cost">💰 $0–$20 if available · $10K+ if squatted</div>
+  </div>
+  <div className="risk-item medium">
+    <span className="risk-item-badge">MEDIUM</span>
+    <h4>Act within weeks</h4>
+    <ul>
+      <li>Exact brand match in a secondary TLD</li>
+      <li>Brand variant in a key market</li>
+      <li>Parked or for-sale domain</li>
+    </ul>
+    <div className="risk-item-cost">💰 $500–$10K via negotiation</div>
+  </div>
+  <div className="risk-item low">
+    <span className="risk-item-badge">LOW</span>
+    <h4>Monitor, don't rush</h4>
+    <ul>
+      <li>Typo or variation in a non-key market</li>
+      <li>Third party with unrelated business</li>
+      <li>Less common ccTLD</li>
+    </ul>
+    <div className="risk-item-cost">💰 $12–$20 to register defensively</div>
+  </div>
+</div>
 
 ---
 
@@ -389,6 +535,42 @@ The abstraction in `claude.js` kept all 7 agents unchanged — they call a singl
 AI_PROVIDER=groq   # or: anthropic, gemini
 ```
 
+<div className="providers">
+  <div className="provider-card anthropic">
+    <div className="provider-name">Anthropic Claude</div>
+    <div className="provider-model">claude-sonnet-4-5</div>
+    <span className="provider-tag paid">Paid · Best quality</span>
+    <ul className="provider-features">
+      <li>✦ Highest reasoning quality</li>
+      <li>✦ Best for production use</li>
+      <li>✦ Native streaming support</li>
+      <li>✦ Strong JSON output reliability</li>
+    </ul>
+  </div>
+  <div className="provider-card google">
+    <div className="provider-name">Google Gemini</div>
+    <div className="provider-model">gemini-2.0-flash</div>
+    <span className="provider-tag free">Free tier available</span>
+    <ul className="provider-features">
+      <li>✦ 15 RPM free tier limit</li>
+      <li>✦ Needs retry logic for 7-agent scan</li>
+      <li>✦ Good for occasional testing</li>
+      <li>✦ Key from Google AI Studio</li>
+    </ul>
+  </div>
+  <div className="provider-card groq">
+    <div className="provider-name">Groq</div>
+    <div className="provider-model">llama-3.3-70b-versatile</div>
+    <span className="provider-tag default">Free · Default</span>
+    <ul className="provider-features">
+      <li>✦ ~6,000 req/min free limit</li>
+      <li>✦ Very low latency</li>
+      <li>✦ $0 development cost</li>
+      <li>✦ Recommended for getting started</li>
+    </ul>
+  </div>
+</div>
+
 ---
 
 ## Deployment: The Three Gotchas
@@ -413,6 +595,29 @@ Deployment went smoothly except for three issues worth documenting, because they
 ---
 
 ## What Ships: The User Journey
+
+<div className="journey-flow">
+  <div className="journey-step">
+    <span className="journey-icon">🔍</span>
+    <div className="journey-step-num">1</div>
+    <h4>Enter Company Name</h4>
+    <p>Type your brand. Add optional focus countries or extra product names. Or load the pre-computed Nike demo — no API key needed.</p>
+  </div>
+  <div className="journey-arrow">→</div>
+  <div className="journey-step">
+    <span className="journey-icon">📡</span>
+    <div className="journey-step-num">2</div>
+    <h4>Live Scanning Dashboard</h4>
+    <p>7 agent cards stream their reasoning in real time across 4 phases. Progress ring tracks 0/7 → 7/7 completion.</p>
+  </div>
+  <div className="journey-arrow">→</div>
+  <div className="journey-step">
+    <span className="journey-icon">📋</span>
+    <div className="journey-step-num">3</div>
+    <h4>Full Domain Gap Report</h4>
+    <p>Top 10 priority actions with "Register Now" links. Sortable domain table. Competitor threats. CSV export for legal.</p>
+  </div>
+</div>
 
 The product is a single-page app with three views:
 
