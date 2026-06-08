@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Playfair_Display } from 'next/font/google'
-import { getAllPosts, getFeaturedPost } from '@/lib/posts'
+import { getAllPosts } from '@/lib/posts'
 import type { Metadata } from 'next'
 
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'], style: ['normal', 'italic'] })
@@ -15,7 +15,6 @@ function formatDate(iso: string) {
 }
 
 export default function ArticlesPage() {
-  const featured = getFeaturedPost()
   const allPosts = getAllPosts()
 
   return (
@@ -27,44 +26,6 @@ export default function ArticlesPage() {
         </p>
       </div>
 
-      {/* FEATURED */}
-      {featured && (
-        <div style={{ marginBottom: '48px' }}>
-          <div className="featured-post">
-            <div>
-              <div className="featured-eyebrow">
-                <span className="badge-featured">Featured</span>
-                <span className="post-date">{formatDate(featured.date)} · {featured.readTime}</span>
-              </div>
-              <h2 className={playfair.className}>{featured.title}</h2>
-              <p>{featured.description}</p>
-              <div className="post-meta">
-                {featured.tags.map((tag, i) => (
-                  <span key={tag} className={`post-tag${i === 1 ? ' green' : i === 2 ? ' amber' : ''}`}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <Link className="post-read" href={`/posts/${featured.slug}`}>
-                Read Article →
-              </Link>
-            </div>
-            <div className="featured-visual">
-              <span className="visual-label">Protocols Covered</span>
-              <div className="visual-chips">
-                {['MCP', 'A2A', 'ACP', 'ANP', 'AG-UI', 'AP2', 'UCP', 'X42', 'W3C'].map((p) => (
-                  <span key={p} className="vc">{p}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ALL POSTS */}
-      <div className="section-header">
-        <h2 className={playfair.className}>All Articles</h2>
-      </div>
       <div className="posts-grid">
         {allPosts.map((post) => (
           <Link key={post.slug} href={`/posts/${post.slug}`} className="post-card">
