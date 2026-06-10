@@ -64,7 +64,7 @@ export default async function CanvasPage({ params }: { params: Promise<{ slug: s
 
         <div style={{ borderTop: '1px solid var(--rule)', paddingTop: '32px', marginTop: '48px' }}>
           <Link
-            href="/opportunities"
+            href="/canvases"
             style={{
               fontSize: '14px',
               fontWeight: 600,

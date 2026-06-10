@@ -16,7 +16,7 @@ export default function Nav() {
           <Link href="/">Home</Link>
           <Link href="/articles">Articles</Link>
           <Link href="/products">Product Prototypes</Link>
-          <Link href="/opportunities">Opportunity Canvas</Link>
+          <Link href="/canvases">Opportunity Canvas</Link>
           <a
             href="https://github.com/reachmayankagarwal"
             target="_blank"

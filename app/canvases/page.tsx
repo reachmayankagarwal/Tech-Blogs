@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Structured PM artifacts — problem, solution, market, and go-to-market thinking for opportunities worth building.',
 }
 
-export default function OpportunitiesPage() {
+export default function CanvasesPage() {
   const allCanvases = getAllCanvases()
 
   return (
