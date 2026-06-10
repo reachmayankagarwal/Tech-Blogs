@@ -99,7 +99,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         <div style={{ borderTop: '1px solid var(--rule)', paddingTop: '32px', marginBottom: '80px' }}>
           <Link
-            href="/#products"
+            href="/products"
             style={{
               fontSize: '14px',
               fontWeight: 600,
