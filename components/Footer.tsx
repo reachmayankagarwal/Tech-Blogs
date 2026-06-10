@@ -30,6 +30,7 @@ export default function Footer() {
           LinkedIn
         </a>
       </div>
+      <p className="footer-copyright">© {new Date().getFullYear()} Mayank Agarwal. All rights reserved.</p>
     </footer>
   )
 }

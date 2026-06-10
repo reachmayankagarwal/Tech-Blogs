@@ -513,6 +513,11 @@ footer.site-footer p {
 .footer-links a:hover {
   color: #fff;
 }
+footer.site-footer p.footer-copyright {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 28px 0 0;
+}
 
 /* ── ARTICLE PAGE ── */
 .article-hero {
