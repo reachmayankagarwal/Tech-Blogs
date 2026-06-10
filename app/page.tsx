@@ -52,11 +52,11 @@ export default function HomePage() {
           </div>
           <div className="stat">
             <div className={`stat-num ${playfair.className}`}>{allProducts.length}</div>
-            <div className="stat-label">Products</div>
+            <div className="stat-label">Product Prototypes</div>
           </div>
           <div className="stat">
-            <div className={`stat-num ${playfair.className}`}>2026</div>
-            <div className="stat-label">Est.</div>
+            <div className={`stat-num ${playfair.className}`}>{allCanvases.length}</div>
+            <div className="stat-label">Opportunity Canvas</div>
           </div>
         </div>
       </div>
