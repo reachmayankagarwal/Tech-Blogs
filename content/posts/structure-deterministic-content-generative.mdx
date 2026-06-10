@@ -1,0 +1,184 @@
+---
+title: "Structure Is Deterministic. Content Is Generative."
+description: "The strongest AI applications are not the ones that delegate the most to the model — they are the ones that draw the sharpest boundary between what the model decides and what the code guarantees. A 19-step methodology for building agentic applications around that boundary."
+date: "2026-06-11"
+tags: ["AI Engineering", "Agentic AI", "Architecture", "Methodology"]
+featured: false
+---
+
+Structure is deterministic. Content is generative.
+
+It sounds obvious. Applying it consistently is not.
+
+The model should generate content: draft the recommendation, summarise the inputs, reason across the evidence. But the application itself should own everything structural — **validation, schemas, accessibility, formatting, compliance, and every non-functional requirement**. The moment you let an LLM control structure, you lose three things you cannot ship without: **testability** (you can't assert on output that changes shape every run), **reproducibility** (the same input no longer yields the same artefact), and **clean debugging** (when something breaks, you can't tell whether the bug is in your code or in the model's mood).
+
+This article lays out the boundary, why the industry is independently converging on it, and the 19-step methodology I use to build agentic applications around it — one where every step produces a verifiable artefact and ends with a validation gate.
+
+<div className="sb-split">
+  <div className="sb-card sb-model">
+    <h4>The model decides</h4>
+    <div className="sb-sub">Content — generative</div>
+    <ul>
+      <li>Drafting copy, narratives, summaries</li>
+      <li>Recommendations and trade-off reasoning</li>
+      <li>Synthesising across messy inputs</li>
+      <li>Ranking, judgement, nuance</li>
+    </ul>
+  </div>
+  <div className="sb-card sb-code">
+    <h4>The code guarantees</h4>
+    <div className="sb-sub">Structure — deterministic</div>
+    <ul>
+      <li>Validation and schema enforcement</li>
+      <li>Formatting, layout, rendering</li>
+      <li>Accessibility (WCAG) and compliance</li>
+      <li>Security, audit, non-functional requirements</li>
+    </ul>
+  </div>
+</div>
+
+---
+
+## The Industry Is Converging on the Same Line
+
+This isn't a private preference — three independent threads of engineering practice have arrived at the same boundary from different directions.
+
+**Production agents are mostly deterministic code.** The [12-Factor Agents](https://github.com/humanlayer/12-factor-agents) principles, distilled from over a hundred production implementations, land on the same conclusion: the agents that actually work are not "prompt plus a bag of tools, loop until done." They are well-engineered software that *sprinkles* an LLM only where probabilistic reasoning genuinely helps — and they **own their control flow** rather than letting the model (or a framework) decide when to retry, pause, or terminate.
+
+**Structured outputs are becoming the default contract.** Schema-enforced generation has moved from prompt hygiene to [contract-level infrastructure](https://g360technologies.com/structured-outputs-are-becoming-the-default-contract-for-llm-integrations/). Constrained decoding pushes the validation problem out of your application and into the inference engine itself — and because grammar enforcement trims the model's search space, it is often [faster than unconstrained generation](https://tianpan.co/blog/2026-03-03-structured-generation-reliable-llm-output), not slower.
+
+**Model-owned UI fails accessibility.** The research here is blunt: LLM-generated interfaces [replicate the accessibility flaws of their training data](https://dl.acm.org/doi/10.1145/3744257.3744266), producing markup that is technically plausible and practically exclusionary. Efforts like [A11YN](https://arxiv.org/html/2510.13914v1) try to align models toward WCAG compliance with reward shaping — useful, but the deeper fix is architectural: let the model choose *content and intent*, and let a deterministic renderer guarantee the markup.
+
+---
+
+## Classify Everything, Decide Nothing Twice
+
+The discipline that makes the boundary real is classification: **every element of every deliverable gets explicitly labelled deterministic or generative** before any code is written. Not the deliverable as a whole — every element. A single screen will usually contain both.
+
+<div className="table-wrap">
+<table>
+  <thead>
+    <tr><th>Element</th><th>Classification</th><th>Owner</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Recommendation narrative</td><td>Generative</td><td>Model (via constrained prompt)</td></tr>
+    <tr><td>Shape of the recommendation object</td><td>Deterministic</td><td>Schema contract</td></tr>
+    <tr><td>Section order, layout, typography</td><td>Deterministic</td><td>Renderer</td></tr>
+    <tr><td>Tone and persona of the copy</td><td>Generative — constrained</td><td>Prompt template</td></tr>
+    <tr><td>ARIA roles, contrast, focus order</td><td>Deterministic</td><td>WCAG-compliant UI generator</td></tr>
+    <tr><td>Disclaimers, regulatory text</td><td>Deterministic</td><td>Template — never the model</td></tr>
+  </tbody>
+</table>
+</div>
+
+Once an element is classified, the decision never gets re-made implicitly. If the model produces a field the schema doesn't define, that's a rejected output — not an exciting new feature. If a developer is tempted to "just let the model format the table," the classification sheet says no, and says why.
+
+The contract at the boundary is always a **schema**. Every byte the model produces crosses into the application through a typed, validated structure — fields, types, enums, ranges. The model fills the slots; it never invents the shape. Downstream of that contract, a **deterministic renderer** turns validated data into the final artefact: the document, the dashboard, the UI. The renderer is ordinary code — testable, snapshot-able, auditable — and it's where formatting, branding, accessibility, and compliance are *guaranteed* rather than requested.
+
+---
+
+## The 19-Step Methodology
+
+The boundary is a principle; shipping needs a process. I've written the approach up as a 19-step methodology covering the full lifecycle of an agentic application. The steps group into six phases:
+
+<div className="sb-phases">
+  <div className="sb-phase">
+    <div className="sb-phase-name">Define<span>Who and what</span></div>
+    <div className="sb-phase-steps">
+      <span className="sb-step">Persona definition</span>
+      <span className="sb-step">Deliverable mapping</span>
+    </div>
+  </div>
+  <div className="sb-phase">
+    <div className="sb-phase-name">Classify<span>Draw the boundary</span></div>
+    <div className="sb-phase-steps">
+      <span className="sb-step">Deterministic / generative classification of every element</span>
+    </div>
+  </div>
+  <div className="sb-phase">
+    <div className="sb-phase-name">Contract<span>Enforce the boundary</span></div>
+    <div className="sb-phase-steps">
+      <span className="sb-step">Schema contracts for all LLM output</span>
+      <span className="sb-step">Constrained prompts</span>
+      <span className="sb-step">Deterministic renderers</span>
+      <span className="sb-step">WCAG-compliant UI generators</span>
+    </div>
+  </div>
+  <div className="sb-phase">
+    <div className="sb-phase-name">Validate<span>Prove it works</span></div>
+    <div className="sb-phase-steps">
+      <span className="sb-step">Prototyping</span>
+      <span className="sb-step">User validation</span>
+      <span className="sb-step">Test harnesses</span>
+    </div>
+  </div>
+  <div className="sb-phase">
+    <div className="sb-phase-name">Harden<span>Make it survive</span></div>
+    <div className="sb-phase-steps">
+      <span className="sb-step">Production hardening</span>
+      <span className="sb-step">Observability &amp; guardrails</span>
+    </div>
+  </div>
+  <div className="sb-phase">
+    <div className="sb-phase-name">Evolve<span>Change without restarts</span></div>
+    <div className="sb-phase-steps">
+      <span className="sb-step">Forward-from-change model for enhancements and bug fixes</span>
+    </div>
+  </div>
+</div>
+
+Two mechanisms hold the nineteen steps together.
+
+**Every step ends at a gate.** Each step produces a verifiable artefact — a persona sheet, a classification matrix, a schema, a rendered prototype, a passing harness — and finishes with a validation gate. You do not proceed on vibes; you proceed on evidence.
+
+<div className="sb-gate">
+  <div className="sb-gate-box">
+    <div className="t">Step N</div>
+    <div className="v">Do the work</div>
+  </div>
+  <div className="sb-gate-arrow">→</div>
+  <div className="sb-gate-box">
+    <div className="t">Output</div>
+    <div className="v">Verifiable artefact</div>
+  </div>
+  <div className="sb-gate-arrow">→</div>
+  <div className="sb-gate-box sb-gate-hl">
+    <div className="t">Gate</div>
+    <div className="v">Validate, then proceed</div>
+  </div>
+  <div className="sb-gate-arrow">→</div>
+  <div className="sb-gate-box">
+    <div className="t">Step N+1</div>
+    <div className="v">Build on evidence</div>
+  </div>
+</div>
+
+**A living traceability matrix.** Requirements link to implementation, implementation links to test evidence, and the matrix stays current as the system evolves. This is what makes the methodology *navigable*: when something changes — a new requirement, a bug, a model upgrade — you can see exactly which artefacts the change touches.
+
+---
+
+## Forward From Change — No Restarts
+
+Most AI-app methodologies quietly assume a green field. Real systems live under continuous change, and this is where the traceability matrix pays for itself.
+
+When an enhancement or bug fix arrives, you don't restart the lifecycle. You **enter at the affected step and move forward from there**. A copy-tone complaint enters at the constrained prompt and re-runs the gates downstream of it. A new field in a deliverable enters at the schema contract. A layout defect enters at the renderer — and never touches a prompt, because layout was never the model's job. The classification you did up front is what makes the entry point unambiguous: every defect maps to an owner, and every owner maps to a step.
+
+This is also the quiet payoff of the whole boundary discipline. When structure is deterministic, a structural bug is just a bug — reproducible, bisectable, fixable with a failing test. It is only when the model owns structure that every defect becomes an archaeology project.
+
+<div className="takeaway">
+  <h2>The takeaway</h2>
+  <p>The strongest AI applications are not the ones that delegate the most to the model. They are the ones that draw the sharpest boundary between what the model decides and what the code guarantees.</p>
+  <p>Classify every element as deterministic or generative before you build. Put a schema contract on everything that crosses the boundary. Render with code, not with hope. Gate every step on a verifiable artefact, keep the traceability matrix alive, and when change comes — enter at the affected step and move forward. No restarts.</p>
+</div>
+
+---
+
+## Sources &amp; Further Reading
+
+- [12-Factor Agents — HumanLayer](https://github.com/humanlayer/12-factor-agents) — principles for production LLM software, including "own your control flow"
+- [12-Factor Agents: Why Production LLM Apps Are Mostly Deterministic Code](https://starlog.is/articles/ai-agents/humanlayer-12-factor-agents/)
+- [Structured Outputs Are Becoming the Default Contract for LLM Integrations](https://g360technologies.com/structured-outputs-are-becoming-the-default-contract-for-llm-integrations/)
+- [Structured Generation: Making LLM Output Reliable in Production](https://tianpan.co/blog/2026-03-03-structured-generation-reliable-llm-output)
+- [A11YN: Aligning LLMs for Accessible Web UI Code Generation](https://arxiv.org/html/2510.13914v1)
+- [When LLM-Generated Code Perpetuates UI Accessibility Barriers](https://dl.acm.org/doi/10.1145/3744257.3744266)
+- [What is Generative UI? — Google Cloud](https://cloud.google.com/discover/generative-ui)
