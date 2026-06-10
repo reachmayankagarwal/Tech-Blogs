@@ -3,6 +3,7 @@ import { Playfair_Display } from 'next/font/google'
 import { getAllPosts } from '@/lib/posts'
 import { getAllProducts } from '@/lib/products'
 import { getAllCanvases } from '@/lib/canvases'
+import ScrollClean from '@/components/ScrollClean'
 import type { ProductStatus } from '@/lib/products'
 import type { Metadata } from 'next'
 
@@ -38,6 +39,7 @@ export default function HomePage() {
 
   return (
     <>
+      <ScrollClean />
       {/* HERO */}
       <div className="hero">
         <div className="hero-tag">AI Prototypes · Opportunity Canvases · Articles · 0→1 Product</div>
