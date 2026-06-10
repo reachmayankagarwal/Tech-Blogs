@@ -86,6 +86,16 @@ nav.site-nav {
 .nav-cta:hover {
   background: var(--accent) !important;
 }
+.nav-cta-ghost {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--rule);
+}
+.nav-cta-ghost:hover {
+  background: var(--ink) !important;
+  color: #fff !important;
+  border-color: var(--ink);
+}
 
 /* ── HERO ── */
 .hero {

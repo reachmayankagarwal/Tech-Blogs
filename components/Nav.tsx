@@ -15,9 +15,17 @@ export default function Nav() {
         <div className="nav-links">
           <Link href="/">Home</Link>
           <Link href="/articles">Articles</Link>
-          <Link href="/#products">Products</Link>
+          <Link href="/#products">Product Prototypes</Link>
           <Link href="/#opportunity-canvas">Opportunity Canvas</Link>
           <Link href="/#topics">Topics</Link>
+          <a
+            href="https://github.com/reachmayankagarwal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-cta nav-cta-ghost"
+          >
+            GitHub ↗
+          </a>
           <a
             href="https://linkedin.com/in/reachmayankagarwal"
             target="_blank"

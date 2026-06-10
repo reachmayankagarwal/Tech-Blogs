@@ -94,7 +94,7 @@ export default function HomePage() {
         {allProducts.length > 0 && (
           <div id="products" style={{ marginTop: '64px' }}>
             <div className="section-header">
-              <h2 className={playfair.className}>Products</h2>
+              <h2 className={playfair.className}>Product Prototypes</h2>
             </div>
             <div className="posts-grid">
               {allProducts.map((product) => {
