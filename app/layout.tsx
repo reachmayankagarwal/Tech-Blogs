@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Writing about AI agents, protocols, infrastructure, and the future of technology.',
   openGraph: {
     type: 'website',
-    siteName: 'Mayank.dev',
+    siteName: 'Mayank.ai',
   },
 }
 

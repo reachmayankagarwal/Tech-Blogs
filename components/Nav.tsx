@@ -10,7 +10,7 @@ export default function Nav() {
     <nav className="site-nav">
       <div className="nav-inner">
         <Link href="/" className={`nav-logo ${playfair.className}`}>
-          Mayank<span>.</span>dev
+          Mayank<span>.</span>ai
         </Link>
         <div className="nav-links">
           <Link href="/">Home</Link>
